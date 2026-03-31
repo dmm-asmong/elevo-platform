@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1회차 — AI와 바이브코딩이 뭐야?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Adjusted colors for better contrast and softer look */
+      --navy: #2A3B65;
+      --navy-light: #354B80;
+      --navy-dark: #1A243A;
+      --blue: #4A8FE7;
+      --blue-light: #7BAFF0;
+      --gold: #FFB347;
+      --gold-light: #FFC97A;
+      --white: #F8F9FA;
+      --white-dim: rgba(248, 249, 250, 0.9);
+      --white-muted: rgba(248, 249, 250, 0.65);
+      --white-ghost: rgba(248, 249, 250, 0.12);
+      /* Special colors for Mission Slide */
+      --mission-bg: #2B183A;
+      --mission-accent: #B15EED;
+      --slide-count: 8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--navy-dark);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      color: var(--white);
+    }
+
+    /* ─── PROGRESS BAR ─── */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--gold));
+      width: 0%;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+    }
+
+    /* ─── SLIDE COUNTER ─── */
+    #slide-counter {
+      position: fixed;
+      bottom: 28px;
+      right: 36px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--white-muted);
+      letter-spacing: 2px;
+      z-index: 100;
+      transition: opacity 0.3s;
+    }
+
+    /* ─── NAV HINTS ─── */
+    #nav-hint {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--white-muted);
+      letter-spacing: 1px;
+      z-index: 100;
+      transition: opacity 0.5s;
+    }
+
+    #nav-hint span {
+      font-family: 'Space Mono', monospace;
+    }
+
+    .key-hint {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    /* ─── SLIDE WRAPPER ─── */
+    #slides-wrapper {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* ─── SLIDE BASE ─── */
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 100px;
+      /* Increased side padding */
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(20px);
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+    }
+
+    .slide.exit-up {
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    /* ─── SLIDE BACKGROUNDS ─── */
+    .slide-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* SLIDE 1 — Cover */
+    .slide-1 .slide-bg {
+      background: radial-gradient(ellipse at 30% 50%, #1e3a6e 0%, var(--navy-dark) 60%);
+    }
+
+    .slide-1 .slide-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 80% 20%, rgba(58, 123, 213, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 10% 80%, rgba(245, 166, 35, 0.08) 0%, transparent 40%);
+    }
+
+    /* Grid lines */
+    .slide-1 .slide-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(58, 123, 213, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(58, 123, 213, 0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* SLIDE 2 */
+    .slide-2 .slide-bg {
+      background: url('file:///C:/Users/ccamd/.gemini/antigravity/brain/237118b0-84e4-4f5e-a20b-4a88ff368b36/student_thinking_coding_1774271189597.png') no-repeat center center;
+      background-size: cover;
+    }
+
+    .slide-2 .slide-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(10, 17, 40, 0.7), rgba(10, 17, 40, 0.9));
+    }
+    
+    /* SLIDE 3 */
+    .slide-3 .slide-bg {
+      background: linear-gradient(135deg, #1a2e5a 0%, #0f1c38 100%);
+    }
+    
+    .slide-3 .slide-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 90% 90%, rgba(58, 123, 213, 0.12) 0%, transparent 60%);
+    }
+
+    /* SLIDE 4 */
+    .slide-4 .slide-bg {
+      background: linear-gradient(160deg, #0f1c38 0%, #1a2e5a 50%, #0f1c38 100%);
+    }
+
+    .slide-4 .slide-bg::before {
+      content: '';
+      position: absolute;
+      right: -100px;
+      top: -100px;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245, 166, 35, 0.06) 0%, transparent 70%);
+    }
+
+    /* SLIDE 5 */
+    .slide-5 .slide-bg {
+      background: linear-gradient(180deg, #111e3a 0%, #1a2e5a 100%);
+    }
+
+    .slide-5 .slide-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(58, 123, 213, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(245, 166, 35, 0.06) 0%, transparent 40%);
+    }
+
+    /* SLIDE 6 */
+    .slide-6 .slide-bg {
+      background: linear-gradient(135deg, #0f1c38 0%, #1a3060 100%);
+    }
+
+    .slide-6 .slide-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(58, 123, 213, 0.08) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+
+    /* SLIDE 7 (Mission - Differentiated) */
+    .slide-7 .slide-bg {
+      background: linear-gradient(135deg, #0a1128 0%, #152243 50%, #0a1128 100%);
+    }
+
+    .slide-7 .slide-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(58, 123, 213, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 100%, rgba(245, 166, 35, 0.1) 0%, transparent 50%);
+    }
+
+    /* SLIDE 8 */
+    .slide-8 .slide-bg {
+      background: linear-gradient(160deg, #111e3a 0%, #1a2e5a 60%, #111e3a 100%);
+    }
+
+    .slide-8 .slide-bg::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(58, 123, 213, 0.08) 0%, transparent 70%);
+    }
+
+    /* ─── SLIDE CONTENT ─── */
+    .slide-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1200px;
+      /* Wider content area */
+    }
+
+    /* ─── BADGE ─── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px;
+      background: rgba(58, 123, 213, 0.2);
+      border: 1px solid rgba(58, 123, 213, 0.4);
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--blue-light);
+      text-transform: uppercase;
+      margin-bottom: 30px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    /* ─── SLIDE 1: COVER ─── */
+    .slide-1 .slide-inner {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .cover-session {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 4px;
+      color: var(--blue-light);
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      opacity: 0.9;
+    }
+
+    .mascot-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('C:/Users/ccamd/.gemini/antigravity/brain/237118b0-84e4-4f5e-a20b-4a88ff368b36/vibe_coding_mascot_1774260438460.png');
+      background-repeat: no-repeat;
+      background-position: center right 10%;
+      background-size: 600px;
+      opacity: 0.15;
+      /* Transparency */
+      z-index: 0;
+      /* Behind content */
+      animation: floating-bg 6s ease-in-out infinite;
+    }
+
+    @keyframes floating-bg {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-15px) rotate(2deg);
+      }
+
+      100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+    }
+
+    .cover-title {
+      font-size: clamp(42px, 6vw, 76px);
+      /* Bigger for 2 lines */
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -1px;
+      margin-bottom: 38px;
+      text-align: center;
+    }
+
+    .cover-title .highlight {
+      color: var(--gold);
+      position: relative;
+      display: inline-block;
+    }
+
+    .cover-title .highlight::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gold);
+      opacity: 0.4;
+      border-radius: 2px;
+    }
+
+    .cover-tagline {
+      font-size: clamp(22px, 2.8vw, 28px);
+      /* Increased size for single line */
+      color: var(--white);
+      line-height: 1.6;
+      max-width: 900px;
+      /* widen to allow 1 line */
+      margin-bottom: 48px;
+      padding: 16px 36px;
+      border: none;
+      border-top: 1px solid rgba(255, 179, 71, 0.4);
+      border-bottom: 1px solid rgba(255, 179, 71, 0.4);
+      text-align: center;
+      background: transparent;
+      border-radius: 0;
+    }
+
+    .cover-meta {
+      display: flex;
+      gap: 48px;
+      font-size: 16px;
+      color: var(--white-muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .cover-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .cover-meta-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--blue-light);
+      opacity: 0.8;
+    }
+
+    /* ─── SLIDE 2: QUESTION ─── */
+    .slide-2 .slide-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .slide-3 .slide-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: var(--blue-light);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      opacity: 0.8;
+    }
+
+    .slide-title {
+      font-size: clamp(26px, 3.5vw, 44px);
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+    }
+
+    .slide-sub {
+      font-size: 22px;
+      /* Increased size */
+      color: var(--white-dim);
+      line-height: 1.6;
+    }
+
+    .choices-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .choice-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 24px;
+      background: var(--white-ghost);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      font-size: 20px;
+      /* Increased size */
+      color: var(--white-dim);
+      transition: all 0.2s;
+      cursor: default;
+    }
+
+    .choice-item:hover {
+      background: rgba(58, 123, 213, 0.15);
+      border-color: rgba(58, 123, 213, 0.4);
+      transform: translateX(5px);
+      /* Interactive effect */
+      color: var(--white);
+    }
+
+    .choice-box {
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .choice-special {
+      border-color: rgba(245, 166, 35, 0.4);
+      background: rgba(245, 166, 35, 0.06);
+      color: var(--gold-light);
+    }
+
+    .choice-special .choice-box {
+      border-color: var(--gold);
+    }
+
+    .teacher-note {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: rgba(245, 166, 35, 0.08);
+      border-left: 4px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      font-size: 18px;
+      /* Increased size */
+      color: rgba(245, 166, 35, 0.9);
+      line-height: 1.6;
+    }
+
+    /* ─── SLIDE 4: AI 개념 ─── */
+    .slide-4 .slide-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .slide-4-header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .concept-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .concept-card {
+      padding: 32px 24px;
+      background: var(--white-ghost);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: all 0.2s;
+    }
+
+    .concept-card:hover {
+      background: rgba(58, 123, 213, 0.1);
+      border-color: rgba(58, 123, 213, 0.3);
+      transform: translateY(-4px);
+    }
+
+    .concept-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--blue);
+      line-height: 1;
+      opacity: 0.6;
+    }
+
+    .concept-text {
+      font-size: 20px;
+      /* Increased size */
+      line-height: 1.6;
+      color: var(--white-dim);
+    }
+
+    .concept-text strong {
+      color: var(--white);
+      font-size: 22px;
+    }
+
+    .tip-box {
+      margin-top: 10px;
+      padding: 20px 28px;
+      background: rgba(245, 166, 35, 0.08);
+      border: 1px solid rgba(245, 166, 35, 0.25);
+      border-radius: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      font-size: 20px;
+      /* Increased size */
+      color: rgba(245, 166, 35, 0.9);
+      line-height: 1.6;
+    }
+
+    .tip-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      margin-top: -2px;
+    }
+
+    /* ─── SLIDE 5: 바이브코딩 ─── */
+    .slide-5 .slide-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .compare-table {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .compare-col {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .compare-col.traditional {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .compare-col.vibe {
+      background: rgba(58, 123, 213, 0.1);
+    }
+
+    .compare-divider {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      gap: 8px;
+    }
+
+    .vs-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: var(--white-muted);
+    }
+
+    .arrow-down {
+      color: var(--blue-light);
+      font-size: 28px;
+    }
+
+    .compare-header {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding-bottom: 12px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .compare-col.traditional .compare-header {
+      color: var(--white-muted);
+    }
+
+    .compare-col.vibe .compare-header {
+      color: var(--blue-light);
+    }
+
+    .compare-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      /* Increased */
+      color: var(--white-dim);
+      line-height: 1.4;
+    }
+
+    .compare-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .traditional .compare-dot {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .vibe .compare-dot {
+      background: var(--blue-light);
+    }
+
+    .core-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .core-item {
+      padding: 20px 24px;
+      background: var(--white-ghost);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      /* Stack vertically for emphasis */
+      gap: 8px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--white-dim);
+    }
+
+    .core-check {
+      color: var(--gold);
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .core-item strong {
+      color: var(--white);
+      display: block;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    /* ─── SLIDE 6: AI Studio ─── */
+    .slide-6 .slide-inner {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 50px;
+      align-items: start;
+    }
+
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--white-ghost);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+    }
+
+    .step-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--blue);
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .step-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .step-desc {
+      font-size: 16px;
+      color: var(--white-muted);
+      line-height: 1.5;
+    }
+
+    .url-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: rgba(58, 123, 213, 0.15);
+      border: 1px solid rgba(58, 123, 213, 0.4);
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    .url-icon {
+      font-size: 24px;
+    }
+
+    .url-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--blue-light);
+      letter-spacing: 1px;
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 32px;
+      background: rgba(26, 36, 58, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .alert-item {
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 16px;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .alert-orange {
+      background: rgba(245, 166, 35, 0.08);
+      border: 1px solid rgba(245, 166, 35, 0.25);
+      color: rgba(245, 166, 35, 0.9);
+    }
+
+    .alert-blue {
+      background: rgba(58, 123, 213, 0.1);
+      border: 1px solid rgba(58, 123, 213, 0.3);
+      color: var(--blue-light);
+    }
+
+    .alert-icon {
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+
+    /* ─── SLIDE 7: MISSION ─── */
+    .slide-7 .slide-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 30px;
+    }
+
+    .mission-hero {
+      padding: 40px 60px;
+      background: linear-gradient(135deg, rgba(177, 94, 237, 0.2), rgba(177, 94, 237, 0.05));
+      border: 1px solid rgba(177, 94, 237, 0.4);
+      border-radius: 20px;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .mission-emoji {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .mission-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 900;
+      line-height: 1.3;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .mission-sub {
+      font-size: 20px;
+      color: var(--white-muted);
+    }
+
+    .mission-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .mission-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .mission-section {
+      padding: 28px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .highlight-section {
+      box-shadow: inset 0 0 40px rgba(177, 94, 237, 0.05);
+    }
+
+    .rules-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rule-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 8px;
+      font-size: 18px;
+      line-height: 1.5;
+      color: var(--white-dim);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .rule-item:last-child {
+      border-bottom: none;
+    }
+
+    .rule-check {
+      color: var(--gold);
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 0px;
+    }
+
+    .hints-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 0px;
+    }
+
+    .hints-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hint-tag {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      font-size: 15px;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prompt-examples {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .prompt-ex {
+      padding: 14px 20px;
+      background: rgba(0, 0, 0, 0.15);
+      border-left: 3px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0 8px 8px 0;
+      font-size: 16px;
+      color: var(--white);
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* ─── SLIDE 8: SHARE ─── */
+    .slide-8 .slide-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 28px;
+    }
+
+    .share-section {
+      padding: 24px 32px;
+      background: rgba(58, 123, 213, 0.1);
+      border: 1px solid rgba(58, 123, 213, 0.25);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .share-section p {
+      font-size: 20px;
+      color: var(--white-dim);
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    .summary-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+
+    .summary-card {
+      padding: 20px 18px;
+      background: var(--white-ghost);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .summary-card:hover {
+      background: rgba(58, 123, 213, 0.1);
+      border-color: rgba(58, 123, 213, 0.3);
+    }
+
+    .summary-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gold);
+      opacity: 0.7;
+      line-height: 1;
+    }
+
+    .summary-text {
+      font-size: 18px;
+      line-height: 1.5;
+      color: var(--white-dim);
+    }
+
+    .summary-text strong {
+      color: var(--white);
+      display: block;
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .next-preview {
+      padding: 18px 28px;
+      background: rgba(245, 166, 35, 0.08);
+      border: 1px solid rgba(245, 166, 35, 0.2);
+      border-radius: 12px;
+      font-size: 18px;
+      color: rgba(245, 166, 35, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* ─── NAV BUTTONS ─── */
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--white-muted);
+      font-size: 18px;
+      z-index: 50;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .nav-btn:hover {
+      background: rgba(58, 123, 213, 0.2);
+      border-color: rgba(58, 123, 213, 0.5);
+      color: var(--white);
+    }
+
+    .nav-btn.disabled {
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    #btn-prev {
+      left: 20px;
+    }
+
+    #btn-next {
+      right: 20px;
+    }
+
+    /* ─── SLIDE NUMBER DOTS ─── */
+    #slide-dots {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .dot.active {
+      background: var(--gold);
+      transform: scale(1.4);
+    }
+
+    /* ─── TEACHER BADGE ─── */
+    .teacher-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(245, 166, 35, 0.12);
+      border: 1px solid rgba(245, 166, 35, 0.3);
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    .slide.active .slide-inner>* {
+      animation: fadeInUp 0.5s ease forwards;
+      opacity: 0;
+    }
+
+    .slide.active .slide-inner>*:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    .slide.active .slide-inner>*:nth-child(2) {
+      animation-delay: 0.12s;
+    }
+
+    .slide.active .slide-inner>*:nth-child(3) {
+      animation-delay: 0.19s;
+    }
+
+    .slide.active .slide-inner>*:nth-child(4) {
+      animation-delay: 0.26s;
+    }
+
+    .slide.active .slide-inner>*:nth-child(5) {
+      animation-delay: 0.33s;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Decorative large text */
+    .deco-num {
+      position: absolute;
+      font-family: 'Space Mono', monospace;
+      font-size: 280px;
+      font-weight: 700;
+      color: rgba(58, 123, 213, 0.04);
+      line-height: 1;
+      right: -20px;
+      bottom: -40px;
+      z-index: 0;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* ─── AGENCY LOGO ─── */
+    #agency-logo {
+      position: fixed;
+      top: 32px;
+      right: 40px;
+      font-family: 'Space Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--white-muted);
+      z-index: 100;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- AGENCY LOGO -->
+  <div id="agency-logo">ELEVO</div>
+
+  <div id="progress-bar"></div>
+
+  <!-- NAV -->
+  <button class="nav-btn disabled" id="btn-prev">‹</button>
+  <button class="nav-btn" id="btn-next">›</button>
+
+  <!-- DOTS -->
+  <div id="slide-dots"></div>
+
+  <!-- SLIDE COUNTER -->
+  <div id="slide-counter">01 / 08</div>
+
+  <!-- NAV HINT -->
+  <div id="nav-hint">
+    <span class="key-hint">←</span>
+    <span>이전</span>
+    <span style="margin: 0 4px; opacity:0.3">|</span>
+    <span>다음</span>
+    <span class="key-hint">→</span>
+  </div>
+
+  <div id="slides-wrapper">
+
+    <!-- ══ SLIDE 1 — 표지 ══ -->
+    <div class="slide slide-1 active">
+      <div class="slide-bg"></div>
+      <div class="mascot-bg"></div>
+      <div class="slide-inner">
+        <div class="cover-session">바이브코딩 AI 동아리 &nbsp;·&nbsp; 2026년 4월</div>
+        <div class="cover-title">
+          AI와<br>
+          <span class="highlight">바이브코딩</span>이 뭐야?
+        </div>
+        <div class="cover-tagline">
+          "코딩을 몰라도 AI와 대화하면 무언가를 만들 수 있다."
+        </div>
+        <div class="cover-meta">
+          <div class="cover-meta-item">
+            <span class="cover-meta-label">회차</span>
+            <span>1 / 7</span>
+          </div>
+          <div class="cover-meta-item">
+            <span class="cover-meta-label">시간</span>
+            <span>90분</span>
+          </div>
+          <div class="cover-meta-item">
+            <span class="cover-meta-label">툴</span>
+            <span>Google AI Studio</span>
+          </div>
+        </div>
+      </div>
+      <div class="deco-num">01</div>
+    </div>
+
+    <!-- ══ SLIDE 2 — 질문 던지기 ══ -->
+    <div class="slide slide-2">
+      <div class="slide-bg"></div>
+      <div class="slide-inner" style="text-align: center; justify-content: center; height: 100%;">
+        <div style="max-width: 900px; margin: 0 auto; padding-top: 40px;">
+          <h2 style="font-size: clamp(48px, 6vw, 72px); font-weight: 900; line-height: 1.2; color: var(--white); margin-bottom: 24px; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            여러분이 생각하는<br>
+            <span style="color: var(--gold);">"코딩"</span>은 무엇인가요?
+          </h2>
+          <p style="font-size: 28px; color: var(--white-muted); font-weight: 500; opacity: 0.9;">
+            솔직한 생각이 정답이에요
+          </p>
+        </div>
+      </div>
+      <div class="deco-num">02</div>
+    </div>
+
+    <!-- ══ SLIDE 3 — 질문 선택지 ══ -->
+    <div class="slide slide-3">
+      <div class="slide-bg"></div>
+      <div class="slide-inner">
+        <ul class="choices-list" style="width: 100%; max-width: 800px;">
+          <li class="choice-item">
+            <div class="choice-box"></div> 복잡한 수식과 명령어를 외우는 것
+          </li>
+          <li class="choice-item">
+            <div class="choice-box"></div> 컴퓨터에 지시하는 언어
+          </li>
+          <li class="choice-item">
+            <div class="choice-box"></div> 천재들만 하는 것
+          </li>
+          <li class="choice-item">
+            <div class="choice-box"></div> if, for 같은 영어 단어들
+          </li>
+          <li class="choice-item">
+            <div class="choice-box"></div> 잘 모르겠다
+          </li>
+          <li class="choice-item choice-special">
+            <div class="choice-box"></div> 기타: _________________________
+          </li>
+        </ul>
+      </div>
+      <div class="deco-num">04</div>
+    </div>
+
+    <!-- ══ SLIDE 4 — AI란 무엇인가 ══ -->
+    <div class="slide slide-4">
+      <div class="slide-bg"></div>
+      <div class="slide-inner">
+        <div class="slide-3-header">
+          <div class="slide-title">AI란 무엇인가 — 3줄 요약</div>
+        </div>
+        <div class="concept-cards">
+          <div class="concept-card">
+            <div class="concept-num">01</div>
+            <div class="concept-text">AI는 수십억 개의 글과 코드를 <strong>'읽고'</strong> 패턴을 익혔다.<br><br>도서관 + 인터넷을 다 읽은 친구를 상상해봐요.
+            </div>
+          </div>
+          <div class="concept-card">
+            <div class="concept-num">02</div>
+            <div class="concept-text">우리가 말을 걸면, AI는 그 <strong>패턴으로 대답</strong>한다.<br><br>"자기소개 문장 만들어줘" → 패턴 기억 → 생성
+            </div>
+          </div>
+          <div class="concept-card">
+            <div class="concept-num">03</div>
+            <div class="concept-text">AI는 <strong>틀릴 수 있다.</strong><br>그래서 우리가 확인하고 수정한다.<br><br>'환각' — 없는 걸 있다고 하기도 해요.
+            </div>
+          </div>
+        </div>
+        <div class="tip-box">
+          <div class="tip-icon">💡</div>
+          <div>AI는 <strong>'엄청 많이 읽은 친구'</strong>다. 질문하면 도와주지만, 항상 맞는 건 아니다.<br>그래서 중요한 태도: <strong>비판적으로 보기</strong> —
+            "이게 맞나?" 한 번씩 체크하는 습관!</div>
+        </div>
+      </div>
+      <div class="deco-num">04</div>
+    </div>
+
+    <!-- ══ SLIDE 5 — 바이브코딩이란 ══ -->
+    <div class="slide slide-5">
+      <div class="slide-bg"></div>
+      <div class="slide-inner">
+        <div>
+          <div class="slide-title">바이브코딩이란?</div>
+          <div class="slide-sub" style="font-size:13px; margin-top:6px">코딩 문법을 몰라도 AI와 <strong
+              style="color:var(--gold)">대화</strong>해서 결과물을 만드는 방식 · 2025년 등장</div>
+        </div>
+        <div class="compare-table">
+          <div class="compare-col traditional">
+            <div class="compare-header">전통 코딩</div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>문법 공부 필수
+            </div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>코드 직접 작성
+            </div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>오류 직접 수정
+            </div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>결과까지 오래 걸림
+            </div>
+          </div>
+          <div class="compare-divider">
+            <div class="vs-text">VS</div>
+            <div class="arrow-down">→</div>
+          </div>
+          <div class="compare-col vibe">
+            <div class="compare-header">바이브코딩</div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>말로 설명하면 OK
+            </div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>AI가 코드 생성
+            </div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>"이렇게 바꿔줘" 요청
+            </div>
+            <div class="compare-item">
+              <div class="compare-dot"></div>바로 결과 확인 가능
+            </div>
+          </div>
+        </div>
+        <div class="core-3">
+          <div class="core-item">
+            <div class="core-check">✔</div>
+            <div><strong>프롬프트가 곧 코딩이다</strong>어떻게 말하느냐가 실력이에요</div>
+          </div>
+          <div class="core-item">
+            <div class="core-check">✔</div>
+            <div><strong>수정이 실력이다</strong>처음부터 완벽할 필요 없어요</div>
+          </div>
+          <div class="core-item">
+            <div class="core-check">✔</div>
+            <div><strong>실패도 수업이다</strong>틀린 결과에서 배우는 거예요</div>
+          </div>
+        </div>
+      </div>
+      <div class="deco-num">05</div>
+    </div>
+
+    <!-- ══ SLIDE 6 — Google AI Studio ══ -->
+    <div class="slide slide-6">
+      <div class="slide-bg"></div>
+      <div class="slide-inner">
+        <div>
+          <div class="slide-title">Google AI Studio<br>지금 바로 써보자</div>
+          <div class="slide-sub" style="margin-top:8px; font-size:13px">구글이 만든 AI(Gemini)를 웹에서 바로 사용<br>설치 없음 · 구글 계정만
+            있으면 OK</div>
+          <div class="url-box">
+            <div class="url-icon">🔗</div>
+            <div class="url-text">aistudio.google.com</div>
+          </div>
+          <div class="steps-list">
+            <div class="step-item">
+              <div class="step-num">01</div>
+              <div class="step-content">
+                <div class="step-title">브라우저 주소창에 입력</div>
+                <div class="step-desc">크롬 주소창에 aistudio.google.com 입력 후 Enter</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">02</div>
+              <div class="step-content">
+                <div class="step-title">구글 계정으로 로그인</div>
+                <div class="step-desc">학교 계정 또는 개인 계정 모두 가능</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">03</div>
+              <div class="step-content">
+                <div class="step-title">화면 가운데 입력창에 말 걸기</div>
+                <div class="step-desc">끝! 여기에 원하는 걸 쓰면 됩니다</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <div class="panel-title">⚠️ 문제 발생 시</div>
+          <div class="alert-item alert-orange">
+            <div class="alert-icon">👤</div>
+            <div><strong>계정 없는 경우</strong><br>옆 친구와 화면 공유하며 함께 진행 OK<br>집에서 5분이면 계정 만들 수 있어요</div>
+          </div>
+          <div class="alert-item alert-orange">
+            <div class="alert-icon">🌐</div>
+            <div><strong>로그인 안 되는 경우</strong><br>핫스팟 켜보거나 강사에게 손 들어서 알려주세요</div>
+          </div>
+          <div class="alert-item alert-blue">
+            <div class="alert-icon">✋</div>
+            <div>계정 문제 있으면 부끄럽지 않아요<br><strong>지금 바로 손 들어요!</strong> 같이 해결해요</div>
+          </div>
+
+        </div>
+      </div>
+      <div class="deco-num">06</div>
+    </div>
+
+    <!-- ══ SLIDE 7 — 오늘의 미션 ══ -->
+    <div class="slide slide-7">
+      <div class="slide-bg"></div>
+      <div class="slide-inner">
+        <div style="width:100%; text-align:center;">
+          <div class="mission-hero" style="margin: 0 auto 40px auto;">
+            <div class="mission-emoji">🎯</div>
+            <div class="mission-title">AI로 나를 소개하는 문장 10개 만들기</div>
+            <div class="mission-sub">⏱ 7분 · AI 생성 문장만 · 형식 자유</div>
+          </div>
+        </div>
+        <div class="mission-details">
+          <div class="mission-col">
+            <div class="mission-section">
+              <div class="hints-title">📝 이런 정보를 AI한테 줘봐요</div>
+              <div class="hints-grid">
+                <div class="hint-tag">• 좋아하는 것 / 싫어하는 것</div>
+                <div class="hint-tag">• 꿈 / 목표</div>
+                <div class="hint-tag">• 특기 / 취미</div>
+                <div class="hint-tag">• 성격 / 별명</div>
+              </div>
+            </div>
+            <div class="mission-section">
+              <div class="hints-title">💬 수정 요청 예시</div>
+              <div class="prompt-examples">
+                <div class="prompt-ex">"너무 딱딱해. 더 재미있게 바꿔줘."</div>
+                <div class="prompt-ex">"유머를 넣어줘. 내가 방구석 게이머인 것도 티내줘."</div>
+                <div class="prompt-ex">"자만추 느낌으로 짧게 인스타 감성으로 다시!"</div>
+              </div>
+            </div>
+          </div>
+          <div class="mission-col">
+            <div class="mission-section highlight-section">
+              <div class="hints-title" style="color:var(--gold)">✔ 반드시 지켜야 할 규칙</div>
+              <div class="rules-list">
+                <div class="rule-item">
+                  <div class="rule-check">✔</div>반드시 AI가 생성한 문장일 것 (직접 쓰기 ✕)
+                </div>
+                <div class="rule-item" style="color: var(--gold);">
+                  <div class="rule-check">⭐</div><strong>최소 3개</strong>는 수정 요청을 해서 바꾼 문장일 것
+                </div>
+                <div class="rule-item">
+                  <div class="rule-check">✔</div>형식 자유 — 재미있어도, 진지해도, 랩 가사처럼도 OK
+                </div>
+              </div>
+            </div>
+            <div class="teacher-note" style="background:transparent; border:none; margin-top:12px; padding: 0 16px; color: var(--gold); font-size: 15px; opacity: 0.8;">
+              ⏰ "10개가 많아 보이죠? 한 번에 10개 달라고 해도 되고, 3개씩 나눠서 요청해도 돼요. AI는 지치지 않아요."
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="deco-num">07</div>
+    </div>
+
+    <!-- ══ SLIDE 8 — 공유 타임 ══ -->
+    <div class="slide slide-8">
+      <div class="slide-bg"></div>
+      <div class="slide-inner">
+        <div>
+          <div class="slide-title" style="text-align:center">공유 타임</div>
+        </div>
+        <div class="share-section">
+          <div style="font-size:24px">📢</div>
+          <p>마음에 드는 문장 1개를 골라서 읽어주세요<br>
+            <strong style="color:var(--blue-light)">어떤 프롬프트로 만들었는지</strong>도 함께 알려주세요!
+          </p>
+        </div>
+        <div class="summary-3">
+          <div class="summary-card">
+            <div class="summary-num">01</div>
+            <div class="summary-text">
+              <strong>AI = 엄청 많이 읽은 친구</strong>
+              말 걸면 도와줘요. 하지만 항상 맞는 건 아니에요.
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-num">02</div>
+            <div class="summary-text">
+              <strong>프롬프트 = 코딩</strong>
+              어떻게 말하느냐가 실력이에요.
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-num">03</div>
+            <div class="summary-text">
+              <strong>수정 = 실력</strong>
+              처음부터 완벽할 필요 없어요.
+            </div>
+          </div>
+        </div>
+        <div class="next-preview">
+          <span>⚡</span>
+          <span><strong>다음 시간 예고:</strong> 더 정교한 프롬프트 기술 + 진짜 코드 생성 체험</span>
+        </div>
+      </div>
+      <div class="deco-num">08</div>
+    </div>
+
+  </div>
+
+    <script>
+      const slides = document.querySelectorAll('.slide');
+      const counter = document.getElementById('slide-counter');
+      const progressBar = document.getElementById('progress-bar');
+      const dotsContainer = document.getElementById('slide-dots');
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      let current = 0;
+      const total = slides.length;
+
+      // Create dots
+      slides.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+      });
+
+      function goTo(idx) {
+        if (idx < 0 || idx >= total) return;
+
+        // Exit current
+        slides[current].classList.remove('active');
+        if (idx > current) slides[current].classList.add('exit-up');
+        setTimeout(() => {
+          slides.forEach(s => s.classList.remove('exit-up'));
+        }, 400);
+
+        current = idx;
+        slides[current].classList.add('active');
+
+        // Update UI
+        const num = String(current + 1).padStart(2, '0');
+        counter.textContent = `${num} / ${String(total).padStart(2, '0')}`;
+        progressBar.style.width = `${((current + 1) / total) * 100}%`;
+
+        document.querySelectorAll('.dot').forEach((d, i) => {
+          d.classList.toggle('active', i === current);
+        });
+
+        btnPrev.classList.toggle('disabled', current === 0);
+        btnNext.classList.toggle('disabled', current === total - 1);
+      }
+
+      btnPrev.addEventListener('click', () => goTo(current - 1));
+      btnNext.addEventListener('click', () => goTo(current + 1));
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+          e.preventDefault();
+          goTo(current + 1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          goTo(current - 1);
+        } else if (e.key === 'Home') {
+          goTo(0);
+        } else if (e.key === 'End') {
+          goTo(total - 1);
+        }
+      });
+
+      // Touch/swipe
+      let touchStartX = 0;
+      document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+      document.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+          if (diff > 0) goTo(current + 1);
+          else goTo(current - 1);
+        }
+      });
+
+      // Hide nav hint after first interaction
+      let hintHidden = false;
+      document.addEventListener('keydown', () => {
+        if (!hintHidden) {
+          document.getElementById('nav-hint').style.opacity = '0';
+          hintHidden = true;
+        }
+      });
+    </script>
+</body>
+
+</html>
