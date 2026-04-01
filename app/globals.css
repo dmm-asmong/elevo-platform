@@ -50,6 +50,7 @@ body {
 
 .text-gradient {
   background: linear-gradient(to bottom right, #111, #777);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -171,6 +172,46 @@ body {
   padding: 1.25rem;
   overflow-x: auto;
   margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.code-wrapper {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  background: rgba(255, 255, 255, 1);
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: #888;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.15s;
+  opacity: 0;
+}
+
+.code-wrapper:hover .copy-btn,
+.prompt-block:hover .copy-btn {
+  opacity: 1;
+}
+
+.copy-btn:hover {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.copy-btn.copied {
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
 }
 
 .prose-light pre code {
@@ -261,6 +302,7 @@ body {
   overflow: hidden;
   border: 1px solid rgba(234, 179, 8, 0.3);
   background: #fafafa;
+  position: relative;
 }
 .prose-light .prompt-label {
   display: block;

@@ -14,6 +14,33 @@ export default function MarkdownViewer({ content }: Props) {
     setHtml(renderMarkdown(content));
   }, [content]);
 
+  useEffect(() => {
+    const handleCopy = async (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains("copy-btn")) {
+        const pre = target.nextElementSibling as HTMLPreElement;
+        const code = pre?.querySelector("code")?.innerText || "";
+        
+        try {
+          await navigator.clipboard.writeText(code);
+          const originalText = target.innerText;
+          target.innerText = "COPIED!";
+          target.classList.add("copied");
+          
+          setTimeout(() => {
+            target.innerText = originalText;
+            target.classList.remove("copied");
+          }, 2000);
+        } catch (err) {
+          console.error("Failed to copy!", err);
+        }
+      }
+    };
+
+    document.addEventListener("click", handleCopy);
+    return () => document.removeEventListener("click", handleCopy);
+  }, []);
+
   return (
     <div
       className="prose-light"
@@ -51,10 +78,12 @@ function renderMarkdown(md: string): string {
   html = html
     // 프롬프트 블록 (일반 코드 블록보다 먼저 처리)
     .replace(/```prompt\n([\s\S]*?)```/g, (_, code) =>
-      `<div class="prompt-block"><span class="prompt-label">프롬프트 예시</span><pre><code>${code.trim()}</code></pre></div>`
+      `<div class="prompt-block"><span class="prompt-label">프롬프트 예시</span><button class="copy-btn">COPY</button><pre><code>${code.trim()}</code></pre></div>`
     )
     // 일반 코드 블록
-    .replace(/```[\w]*\n([\s\S]*?)```/g, "<pre><code>$1</code></pre>")
+    .replace(/```[\w]*\n([\s\S]*?)```/g, (_, code) => 
+      `<div class="code-wrapper"><button class="copy-btn">COPY</button><pre><code>${code.trim()}</code></pre></div>`
+    )
     // 인라인 코드
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     // ==highlight== → 골드
