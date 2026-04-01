@@ -33,10 +33,7 @@
 Claude Code를 열고 아래 명령어를 실행합니다:
 
 ```bash
-git clone --single-branch --depth 1 \
-  https://github.com/garrytan/gstack.git \
-  ~/.claude/skills/gstack && \
-  cd ~/.claude/skills/gstack && ./setup
+git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
 ```
 
 팀원 공유 시 (선택):
