@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { remark } from "remark";
 import html from "remark-html";
+import remarkGfm from "remark-gfm";
 
 interface Props {
   content: string;
@@ -15,6 +16,7 @@ export default function MarkdownViewer({ content }: Props) {
     async function processMarkdown() {
       // 1. remark를 사용하여 마크다운을 기본 HTML로 변환 (줄바꿈 및 태그 중첩 문제 해결)
       const processed = await remark()
+        .use(remarkGfm)
         .use(html, { sanitize: false })
         .process(content);
       
