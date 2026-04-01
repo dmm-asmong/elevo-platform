@@ -16,7 +16,7 @@ export default function MarkdownViewer({ content }: Props) {
 
   return (
     <div
-      className="prose-dark"
+      className="prose-light"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { skills } from "@/content/skills.config";
 import { courses } from "@/content/courses.config";
 
 export default function SideNav() {
@@ -17,11 +18,11 @@ export default function SideNav() {
       {/* 모바일 토글 */}
       <button
         onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-sm"
         style={{
-          background: "#111",
-          color: "#888",
-          border: "1px solid #222",
+          background: "rgba(255, 255, 255, 0.9)",
+          color: "#333",
+          border: "1px solid rgba(0, 0, 0, 0.1)",
         }}
         aria-label="메뉴"
       >
@@ -47,15 +48,15 @@ export default function SideNav() {
           ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 overflow-hidden`}
         style={{
           width: "280px",
-          background: "rgba(10, 10, 12, 0.7)",
+          background: "rgba(255, 255, 255, 0.7)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
-          borderRight: "1px solid rgba(255, 255, 255, 0.05)",
+          borderRight: "1px solid rgba(0, 0, 0, 0.05)",
         }}
       >
         {/* 아주 미세한 그라데이션 오버레이 */}
         <div className="absolute inset-0 pointer-events-none opacity-20"
-             style={{ background: "linear-gradient(to bottom, rgba(253, 224, 71, 0.05), transparent 30%)" }} />
+             style={{ background: "linear-gradient(to bottom, rgba(0, 0, 0, 0.02), transparent 30%)" }} />
 
         {/* 로고 영역 */}
         <div className="relative px-6 py-8 mb-4">
@@ -63,8 +64,8 @@ export default function SideNav() {
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg flex-shrink-0 transition-transform duration-500 group-hover:rotate-[10deg] shadow-[0_0_15px_rgba(253,224,71,0.2)]"
               style={{
-                background: "#FDE047",
-                color: "#111",
+                background: "#111111",
+                color: "#FDE047",
                 fontFamily: "var(--font-display)",
               }}
             >
@@ -72,12 +73,12 @@ export default function SideNav() {
             </div>
             <div className="flex flex-col">
               <span
-                className="font-black text-lg tracking-[-0.05em] leading-none mb-1 text-white"
+                className="font-black text-lg tracking-[-0.05em] leading-none mb-1 text-[#111]"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 ELEVO
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#555]">
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#999]">
                 PLATFORM
               </span>
             </div>
@@ -96,9 +97,9 @@ export default function SideNav() {
             href="/"
             onClick={() => setOpen(false)}
             className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300
-              ${pathname === "/" ? "text-white bg-white/5 border border-white/10 shadow-[0_4px_15px_rgba(0,0,0,0.2)]" : "text-[#777] hover:text-[#aaa] hover:bg-white/5"}`}
+              ${pathname === "/" ? "text-[#111] bg-black/5 border border-black/5 shadow-sm" : "text-[#666] hover:text-[#222] hover:bg-black/5"}`}
           >
-            <div className={`p-1.5 rounded-lg transition-colors duration-300 ${pathname === "/" ? "bg-yellow/10 text-yellow" : "bg-white/5 text-[#444] group-hover:text-[#666]"}`}>
+            <div className={`p-1.5 rounded-lg transition-colors duration-300 ${pathname === "/" ? "bg-yellow/20 text-[#ca8a04]" : "bg-black/5 text-[#666] group-hover:text-[#444]"}`}>
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
@@ -110,8 +111,8 @@ export default function SideNav() {
           {activeCourses.length > 0 && (
             <div className="pt-8">
               <div className="px-3 mb-4 flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#444]">Curriculum</span>
-                <div className="flex-grow h-[1px] bg-white/5" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#666]">Curriculum</span>
+                <div className="flex-grow h-[1px] bg-black/5" />
               </div>
               
               <div className="space-y-1">
@@ -123,14 +124,14 @@ export default function SideNav() {
                       href={`/courses/${course.slug}`}
                       onClick={() => setOpen(false)}
                       className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300
-                        ${isActive ? "text-white bg-white/5 border border-white/10" : "text-[#666] hover:text-[#999] hover:bg-white/5"}`}
+                        ${isActive ? "text-[#111] bg-black/5 border border-black/5 shadow-sm" : "text-[#666] hover:text-[#222] hover:bg-black/5"}`}
                     >
                       <span className={`text-lg transition-transform duration-300 ${isActive ? "scale-110 opacity-100" : "opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105"}`}>
                         {course.icon}
                       </span>
                       <span className="flex-1 truncate tracking-tight">{course.title}</span>
                       {isActive && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-yellow shadow-[0_0_10px_rgba(253,224,71,0.5)] animate-pulse" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#EAB308] shadow-[0_0_10px_rgba(234,179,8,0.5)] animate-pulse" />
                       )}
                     </Link>
                   );
@@ -143,13 +144,13 @@ export default function SideNav() {
           {comingCourses.length > 0 && (
             <div className="pt-8">
               <div className="px-3 mb-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#444]">Soon</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#666]">Soon</span>
               </div>
               <div className="space-y-1">
                 {comingCourses.map((course) => (
                   <div
                     key={course.slug}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[#444]"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[#999]"
                   >
                     <span className="text-lg opacity-20 grayscale">{course.icon}</span>
                     <span className="flex-1 truncate tracking-tight">{course.title}</span>
@@ -158,16 +159,43 @@ export default function SideNav() {
               </div>
             </div>
           )}
+
+          {/* 자료실 */}
+          <div className="pt-8">
+            <div className="px-3 mb-4 flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#666]">Library</span>
+              <div className="flex-grow h-[1px] bg-black/5" />
+            </div>
+            <div className="space-y-1">
+              <Link
+                href="/library/skills"
+                onClick={() => setOpen(false)}
+                className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300
+                  ${pathname.startsWith("/library/skills") ? "text-[#111] bg-black/5 border border-black/5 shadow-sm" : "text-[#666] hover:text-[#222] hover:bg-black/5"}`}
+              >
+                <div className={`p-1.5 rounded-lg transition-colors duration-300 ${pathname.startsWith("/library/skills") ? "bg-orange-400/20 text-[#ea580c]" : "bg-black/5 text-[#666] group-hover:text-[#444]"}`}>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <span className="flex-1 tracking-tight">Skills</span>
+                <span className="text-[10px] font-mono font-bold text-[#888]">{skills.length}</span>
+                {pathname.startsWith("/library/skills") && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#ea580c] shadow-[0_0_10px_rgba(234,88,12,0.5)] animate-pulse" />
+                )}
+              </Link>
+            </div>
+          </div>
         </nav>
 
         {/* 하단 영역 */}
         <div className="relative px-6 py-6 mt-auto">
-          <div className="absolute top-0 left-6 right-6 h-[1px] bg-white/5" />
-          <div className="flex items-center justify-between text-[10px] font-bold tracking-wider text-[#444] uppercase">
+          <div className="absolute top-0 left-6 right-6 h-[1px] bg-black/5" />
+          <div className="flex items-center justify-between text-[10px] font-bold tracking-wider text-[#888] uppercase">
             <span>© 2026 ELEVO</span>
             <div className="flex gap-2">
-              <div className="w-1 h-1 rounded-full bg-white/10" />
-              <div className="w-1 h-1 rounded-full bg-white/10" />
+              <div className="w-1 h-1 rounded-full bg-black/10" />
+              <div className="w-1 h-1 rounded-full bg-black/10" />
             </div>
           </div>
         </div>

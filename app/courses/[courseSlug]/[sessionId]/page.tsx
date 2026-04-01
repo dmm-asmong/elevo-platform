@@ -40,29 +40,29 @@ export default async function SessionPage({ params }: Props) {
     <div className="px-6 py-10" style={{ maxWidth: "1280px", margin: "0 auto" }}>
 
       {/* 브레드크럼 */}
-      <div className="flex items-center gap-2 text-xs mb-8 uppercase tracking-widest" style={{ color: "#888" }}>
-        <Link href="/" className="hover:text-white transition-colors">홈</Link>
+      <div className="flex items-center gap-2 text-xs mb-8 uppercase tracking-widest" style={{ color: "#666" }}>
+        <Link href="/" className="hover:text-[#111] transition-colors">홈</Link>
         <span>/</span>
-        <Link href={`/courses/${courseSlug}`} className="hover:text-white transition-colors">
+        <Link href={`/courses/${courseSlug}`} className="hover:text-[#111] transition-colors">
           {course.title}
         </Link>
         <span>/</span>
-        <span style={{ color: "#aaa" }}>{session.sessionNumber}회차</span>
+        <span style={{ color: "#444" }}>{session.sessionNumber}회차</span>
       </div>
 
       {/* 회차 헤더 */}
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>
-          <div className="font-mono text-xs mb-2" style={{ color: "#888" }}>
+          <div className="font-mono text-xs mb-2" style={{ color: "#666" }}>
             {String(session.sessionNumber).padStart(2, "0")} / {String(sessions.length).padStart(2, "0")}
           </div>
           <h1
             className="font-bold text-2xl mb-2"
-            style={{ color: "#fff", fontFamily: "var(--font-display)", letterSpacing: "-0.025em" }}
+            style={{ color: "#111", fontFamily: "var(--font-display)", letterSpacing: "-0.025em" }}
           >
             {session.title}
           </h1>
-          <div className="flex items-center gap-3 text-xs" style={{ color: "#999" }}>
+          <div className="flex items-center gap-3 text-xs" style={{ color: "#555" }}>
             <span>{session.duration}</span>
             {session.tool && <><span>·</span><span>{session.tool}</span></>}
           </div>
@@ -72,7 +72,7 @@ export default async function SessionPage({ params }: Props) {
           <Link
             href={`/courses/${courseSlug}/${sessionId}/present`}
             className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 flex-shrink-0"
-            style={{ background: "#FDE047", color: "#000" }}
+            style={{ background: "#EAB308", color: "#111", boxShadow: "0 4px 14px rgba(234, 179, 8, 0.3)" }}
           >
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
@@ -86,8 +86,8 @@ export default async function SessionPage({ params }: Props) {
       <div className="flex gap-8 items-start mb-8">
         {/* 메인 콘텐츠 카드 */}
         <div
-          className="flex-1 min-w-0 rounded-[24px] p-6"
-          style={{ background: "#181818", border: "1px solid #282828" }}
+          className="flex-1 min-w-0 rounded-[24px] p-6 shadow-sm"
+          style={{ background: "#ffffff", border: "1px solid #eaeaea" }}
         >
           <ContentTabs tabs={tabs} />
         </div>
@@ -103,16 +103,16 @@ export default async function SessionPage({ params }: Props) {
         {prevSession ? (
           <Link
             href={`/courses/${courseSlug}/${prevSession.id}`}
-            className="group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200"
-            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid #1c1c1c", flex: "1", maxWidth: "48%" }}
+            className="group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 hover:shadow-sm"
+            style={{ background: "#ffffff", border: "1px solid #eaeaea", flex: "1", maxWidth: "48%" }}
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-              style={{ color: "#888", flexShrink: 0 }}>
+              style={{ color: "#666", flexShrink: 0 }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
             </svg>
             <div className="min-w-0">
               <div className="text-[10px] uppercase tracking-widest mb-0.5" style={{ color: "#888" }}>이전</div>
-              <div className="text-sm font-medium truncate group-hover:text-white transition-colors" style={{ color: "#aaa" }}>
+              <div className="text-sm font-medium truncate group-hover:text-[#111] transition-colors" style={{ color: "#444" }}>
                 {prevSession.title}
               </div>
             </div>
@@ -122,17 +122,17 @@ export default async function SessionPage({ params }: Props) {
         {nextSession && (
           <Link
             href={`/courses/${courseSlug}/${nextSession.id}`}
-            className="group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-right justify-end"
-            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid #1c1c1c", flex: "1", maxWidth: "48%" }}
+            className="group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-right justify-end hover:shadow-sm"
+            style={{ background: "#ffffff", border: "1px solid #eaeaea", flex: "1", maxWidth: "48%" }}
           >
             <div className="min-w-0">
               <div className="text-[10px] uppercase tracking-widest mb-0.5" style={{ color: "#888" }}>다음</div>
-              <div className="text-sm font-medium truncate group-hover:text-white transition-colors" style={{ color: "#aaa" }}>
+              <div className="text-sm font-medium truncate group-hover:text-[#111] transition-colors" style={{ color: "#444" }}>
                 {nextSession.title}
               </div>
             </div>
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-              style={{ color: "#FDE047", flexShrink: 0 }}>
+              style={{ color: "#ca8a04", flexShrink: 0 }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
             </svg>
           </Link>
