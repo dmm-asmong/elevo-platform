@@ -39,9 +39,8 @@ git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
 팀원 공유 시 (선택):
 
 ```bash
-cp -Rf ~/.claude/skills/gstack .claude/skills/gstack && \
-  rm -rf .claude/skills/gstack/.git && \
-  cd .claude/skills/gstack && ./setup
+git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git .agents/skills/gstack
+cd .agents/skills/gstack && ./setup --host codex
 ```
 
 ---
