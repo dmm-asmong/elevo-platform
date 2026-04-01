@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { processMarkdown } from "./markdown";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
@@ -11,5 +12,5 @@ export async function getSkillContent(contentFile: string): Promise<string> {
   if (!fs.existsSync(filePath)) return "";
 
   const raw = fs.readFileSync(filePath, "utf-8");
-  return raw;
+  return processMarkdown(raw);
 }

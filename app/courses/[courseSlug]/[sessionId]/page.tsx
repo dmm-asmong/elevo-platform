@@ -19,7 +19,7 @@ export default async function SessionPage({ params }: Props) {
   const session = sessions.find((s) => s.id === sessionId);
   if (!session) notFound();
 
-  const content = getSessionContent(courseSlug, sessionId);
+  const content = await getSessionContent(courseSlug, sessionId);
   const tocHeadings = content.lesson ? extractTOC(content.lesson) : [];
 
   const tabs = [

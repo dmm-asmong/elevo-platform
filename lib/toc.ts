@@ -13,13 +13,15 @@ export function slugifyHeading(text: string): string {
     .toLowerCase();
 }
 
-export function extractTOC(md: string): TOCHeading[] {
+export function extractTOC(html: string): TOCHeading[] {
   const headings: TOCHeading[] = [];
-  for (const line of md.split("\n")) {
-    const m2 = line.match(/^## (.+)$/);
-    const m3 = line.match(/^### (.+)$/);
-    if (m2) headings.push({ level: 2, text: m2[1], id: slugifyHeading(m2[1]) });
-    else if (m3) headings.push({ level: 3, text: m3[1], id: slugifyHeading(m3[1]) });
+  const regex = /<h([23])\s+id="([^"]*)">([\s\S]*?)<\/h\1>/g;
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    const level = parseInt(match[1]);
+    const id = match[2];
+    const text = match[3].replace(/<[^>]+>/g, "").trim();
+    headings.push({ level, text, id });
   }
   return headings;
 }

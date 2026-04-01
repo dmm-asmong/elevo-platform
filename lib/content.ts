@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { processMarkdown } from "./markdown";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 
@@ -66,15 +67,15 @@ export function getSessionList(courseSlug: string): (SessionMeta & { id: string 
   });
 }
 
-export function getSessionContent(courseSlug: string, sessionId: string): SessionContent {
+export async function getSessionContent(courseSlug: string, sessionId: string): Promise<SessionContent> {
   const sessionDir = path.join(CONTENT_DIR, courseSlug, sessionId);
 
-  const readMd = (filename: string): string | null => {
+  const readMd = async (filename: string): Promise<string | null> => {
     const filePath = path.join(sessionDir, filename);
     if (!fs.existsSync(filePath)) return null;
     const raw = fs.readFileSync(filePath, "utf-8");
     const { content } = matter(raw);
-    return content;
+    return processMarkdown(content);
   };
 
   const publicSlideDir = path.join(process.cwd(), "public", "slides", courseSlug);
@@ -88,10 +89,16 @@ export function getSessionContent(courseSlug: string, sessionId: string): Sessio
     ? `/slides/${courseSlug}/${sessionId}.pdf`
     : null;
 
+  const [lesson, slideOutline, worksheet] = await Promise.all([
+    readMd("lesson.md"),
+    readMd("slide-outline.md"),
+    readMd("worksheet.md"),
+  ]);
+
   return {
-    lesson: readMd("lesson.md"),
-    slideOutline: readMd("slide-outline.md"),
-    worksheet: readMd("worksheet.md"),
+    lesson,
+    slideOutline,
+    worksheet,
     hasSlideHtml: !!slideUrl,
     slideUrl,
   };

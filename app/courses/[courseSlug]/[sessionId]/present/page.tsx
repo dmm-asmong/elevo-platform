@@ -16,7 +16,7 @@ export default async function PresentPage({ params }: Props) {
   const session = sessions.find((s) => s.id === sessionId);
   if (!session) notFound();
 
-  const content = getSessionContent(courseSlug, sessionId);
+  const content = await getSessionContent(courseSlug, sessionId);
   if (!content.slideUrl) notFound();
 
   const slideUrl = content.slideUrl;
