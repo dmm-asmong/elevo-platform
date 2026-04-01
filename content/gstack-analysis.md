@@ -125,16 +125,14 @@ gstack은 **"생각 → 계획 → 구축 → 검토 → 테스트 → 출시 �
 ### Codex / Gemini CLI
 
 ```bash
-git clone --single-branch --depth 1 \
-  https://github.com/garrytan/gstack.git ~/gstack
+git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/gstack
 cd ~/gstack && ./setup --host codex
 ```
 
 ### 자동 감지
 
 ```bash
-git clone --single-branch --depth 1 \
-  https://github.com/garrytan/gstack.git ~/gstack
+git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/gstack
 cd ~/gstack && ./setup --host auto
 ```
 
