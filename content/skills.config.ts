@@ -25,4 +25,17 @@ export const skills: Skill[] = [
     addedAt: "2026-04-01",
     contentFile: "gstack-analysis.md",
   },
+  {
+    slug: "seo-content-writer",
+    title: "SEO Content Writer",
+    description:
+      "SEO 최적화 블로그 포스트, 기사, 랜딩 페이지 작성을 돕는 스킬입니다. CORE-EEAT 가이드라인과 CITE 프레임워크를 기반으로 고품질 콘텐츠를 생성합니다.",
+    icon: "✍️",
+    color: "#2563eb",
+    author: "aaron-he-zhu",
+    source: "https://github.com/aaron-he-zhu/seo-geo-claude-skills",
+    tags: ["SEO", "Content Writing", "CORE-EEAT", "Google Search"],
+    addedAt: "2026-04-10",
+    contentFile: "seo-content-writer.md",
+  },
 ];

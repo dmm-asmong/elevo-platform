@@ -1,0 +1,9 @@
+{
+  "sessionNumber": 1,
+  "title": "AI 학습 스피드런: 100분 만에 끝내는 디지털 서재",
+  "duration": "100분",
+  "tool": "NotebookLM & Gemini",
+  "tags": ["RAG", "Prompt Engineering", "Study Strategy"],
+  "hasLesson": true,
+  "status": "published"
+}

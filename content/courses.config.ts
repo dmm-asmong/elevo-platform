@@ -36,8 +36,8 @@ export const courses: Course[] = [
     description: "Google NotebookLM으로 문서를 분석하고, Gemini와 함께 지식을 체계화합니다.",
     icon: "📓",
     color: "#059669",
-    sessions: 0,
-    status: "coming-soon",
+    sessions: 1,
+    status: "active",
     tags: ["NotebookLM", "Gemini", "Google"],
   },
   {

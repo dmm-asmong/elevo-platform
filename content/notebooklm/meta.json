@@ -1,0 +1,7 @@
+{
+  "title": "NotebookLM & Gemini",
+  "description": "Google NotebookLM으로 문서를 분석하고, Gemini와 함께 지식을 체계화합니다.",
+  "targetAudience": "고등학생 (1~2학년)",
+  "totalSessions": 1,
+  "order": 3
+}
