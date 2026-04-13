@@ -387,6 +387,18 @@ body {
 }
 .prose-light a:hover { text-decoration-color: #ca8a04; }
 
+.prose-light img,
+.skill-content img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 1.2rem 0 0.75rem;
+  border-radius: 16px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
 /* ─── 스크롤바 ─── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #fafafa; }
@@ -536,3 +548,32 @@ body {
   text-decoration-color: rgba(234, 88, 12, 0.3);
 }
 .skill-content a:hover { text-decoration-color: #ea580c; }
+
+@media (max-width: 640px) {
+  .prose-light {
+    font-size: 0.9rem;
+  }
+
+  .prose-light table,
+  .skill-content table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  .prose-light th,
+  .prose-light td,
+  .skill-content th,
+  .skill-content td {
+    min-width: 140px;
+  }
+
+  .prose-light .prompt-block pre,
+  .prose-light pre,
+  .skill-content pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

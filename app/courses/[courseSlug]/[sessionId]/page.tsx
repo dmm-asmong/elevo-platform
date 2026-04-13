@@ -52,9 +52,9 @@ export default async function SessionPage({ params }: Props) {
         style={{ background: `${course.color}08` }}
       />
 
-      <div className="relative z-10 mx-auto px-8 py-16" style={{ maxWidth: "1280px" }}>
+      <div className="relative z-10 mx-auto px-4 py-10 sm:px-6 lg:px-8 lg:py-16" style={{ maxWidth: "1280px" }}>
         {/* 브레드크럼 */}
-        <div className="flex items-center gap-3 text-[10px] font-bold mb-12 uppercase tracking-[0.2em] text-[#666] animate-slide-up">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] font-bold mb-10 sm:mb-12 uppercase tracking-[0.2em] text-[#666] animate-slide-up">
           <Link href="/" className="hover:text-[#ea580c] transition-colors">
             Home
           </Link>
@@ -71,10 +71,10 @@ export default async function SessionPage({ params }: Props) {
 
         {/* 헤더 */}
         <header className="mb-16 animate-slide-up">
-          <div className="flex items-start justify-between gap-6 mb-8">
-            <div className="flex items-center gap-6">
+          <div className="flex flex-col gap-6 mb-8 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-4 sm:gap-6 min-w-0">
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-[0_8px_30px_rgba(0,0,0,0.1)] flex-shrink-0"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-3xl shadow-[0_8px_30px_rgba(0,0,0,0.1)] flex-shrink-0"
                 style={{
                   background: "rgba(0, 0, 0, 0.02)",
                   border: "1px solid rgba(0, 0, 0, 0.05)",
@@ -83,12 +83,12 @@ export default async function SessionPage({ params }: Props) {
               >
                 {course.icon}
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col min-w-0">
                 <div className="font-mono text-[11px] mb-2" style={{ color: "#888" }}>
                   {String(session.sessionNumber).padStart(2, "0")} / {String(sessions.length).padStart(2, "0")}
                 </div>
                 <h1
-                  className="font-black text-4xl mb-2 tracking-tight text-[#111] italic"
+                  className="font-black text-[2rem] leading-[1.05] sm:text-4xl mb-2 tracking-tight text-[#111] italic break-keep"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {session.title}
@@ -115,7 +115,7 @@ export default async function SessionPage({ params }: Props) {
             {content.hasSlideHtml && (
               <Link
                 href={`/courses/${courseSlug}/${sessionId}/present`}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 flex-shrink-0"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 flex-shrink-0"
                 style={{ background: "#EAB308", color: "#111", boxShadow: "0 4px 14px rgba(234, 179, 8, 0.3)" }}
               >
                 <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -149,7 +149,7 @@ export default async function SessionPage({ params }: Props) {
                 <span className="text-[9px] font-black uppercase tracking-wider text-[#888]">
                   Tool
                 </span>
-                <span className="text-[11px] font-bold text-[#444] ml-auto truncate max-w-[120px]">
+                <span className="text-[11px] font-bold text-[#444] ml-auto truncate max-w-[140px] sm:max-w-[120px]">
                   {session.tool}
                 </span>
               </div>
@@ -191,7 +191,7 @@ export default async function SessionPage({ params }: Props) {
         {/* 콘텐츠 + 사이드 TOC */}
         <div className="flex gap-8 items-start mb-8 animate-slide-up delay-200">
           <div
-            className="flex-1 min-w-0 rounded-[24px] p-6 shadow-sm"
+            className="flex-1 min-w-0 rounded-[24px] p-4 sm:p-6 shadow-sm overflow-hidden"
             style={{ background: "#ffffff", border: "1px solid #eaeaea" }}
           >
             <ContentTabs tabs={tabs} />

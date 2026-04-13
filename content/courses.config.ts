@@ -21,6 +21,16 @@ export const courses: Course[] = [
     tags: ["Google AI Studio", "Gemini", "HTML/CSS/JS"],
   },
   {
+    slug: "ai-video-production",
+    title: "AI 영상 제작 with VREW",
+    description: "AI로 영상 기획, VREW 편집, Suno 배경음악 제작까지 배우는 입문 교안.",
+    icon: "🎬",
+    color: "#ef4444",
+    sessions: 1,
+    status: "active",
+    tags: ["ChatGPT", "VREW", "Suno AI"],
+  },
+  {
     slug: "generative-ai",
     title: "생성형AI 활용법",
     description: "ChatGPT, Claude, Gemini 등 생성형 AI 도구를 업무에 실전 적용하는 방법을 배웁니다.",
