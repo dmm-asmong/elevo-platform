@@ -80,4 +80,14 @@ export const courses: Course[] = [
     status: "active",
     tags: ["ChatGPT", "Gemini", "DALL-E", "Vrew"],
   },
+  {
+    slug: "ai-creator-workshop",
+    title: "AI 크리에이터 첫걸음",
+    description: "촬영·편집 경험 없이, AI 3종 세트로 90분 만에 첫 숏폼 영상 완성",
+    icon: "🚀",
+    color: "#6366F1",
+    sessions: 1,
+    status: "active",
+    tags: ["ChatGPT", "DALL-E", "Vrew", "숏폼"],
+  },
 ];
