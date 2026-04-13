@@ -134,7 +134,7 @@ export default async function CoursePage({ params }: Props) {
                 {/* 자료 뱃지 */}
                 <div className="flex items-center gap-2 flex-shrink-0 z-10">
                   {session.hasLesson && (
-                    <div className="w-2 h-2 rounded-full bg-black/10" title="교안 포함" />
+                    <div className="w-2 h-2 rounded-full bg-black/10" title="강의 내용 포함" />
                   )}
                   {session.hasSlideHtml && (
                     <span className="text-[9px] font-black px-2 py-1 rounded bg-[#EAB308]/10 text-[#ca8a04] border border-[#EAB308]/20 uppercase tracking-tighter">

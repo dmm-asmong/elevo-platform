@@ -23,7 +23,7 @@ export const courses: Course[] = [
   {
     slug: "ai-video-production",
     title: "AI 영상 제작 with VREW",
-    description: "AI로 영상 기획, VREW 편집, Suno 배경음악 제작까지 배우는 입문 교안.",
+    description: "AI로 영상 기획, VREW 편집, Suno 배경음악 제작까지 배우는 입문 과정.",
     icon: "🎬",
     color: "#ef4444",
     sessions: 1,

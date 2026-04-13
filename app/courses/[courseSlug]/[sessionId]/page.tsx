@@ -20,10 +20,10 @@ export default async function SessionPage({ params }: Props) {
   if (!session) notFound();
 
   const content = await getSessionContent(courseSlug, sessionId);
-  const tocHeadings = content.lesson ? extractTOC(content.lesson) : [];
+  const tocHeadings = content.lesson ? extractTOC(content.lesson) : (content.worksheet ? extractTOC(content.worksheet) : []);
 
   const tabs = [
-    { id: "lesson", label: "교안", content: content.lesson },
+    { id: "lesson", label: "강의 내용", content: content.lesson },
     {
       id: "worksheet",
       label: "워크시트",
@@ -182,7 +182,7 @@ export default async function SessionPage({ params }: Props) {
               className="text-xl font-bold tracking-tight text-[#111] uppercase italic"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Lesson
+              Lecture
             </h2>
           </div>
           <div className="flex-grow h-[1px] bg-gradient-to-r from-black/5 to-transparent" />
