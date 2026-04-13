@@ -38,4 +38,30 @@ export const skills: Skill[] = [
     addedAt: "2026-04-10",
     contentFile: "seo-content-writer.md",
   },
+  {
+    slug: "insane-design",
+    title: "Insane Design",
+    description:
+      "URL 하나로 웹사이트의 실제 CSS를 분석해 디자인 시스템 레퍼런스(design.md)와 인터랙티브 HTML 리포트를 생성합니다. AI가 추측하지 않고 실제 CSS 팩트만 사용합니다.",
+    icon: "🎨",
+    color: "#7C3AED",
+    author: "fivetaku",
+    source: "https://github.com/fivetaku/insane-design",
+    tags: ["Design System", "CSS Analysis", "Design Tokens", "UI Cloning"],
+    addedAt: "2026-04-13",
+    contentFile: "insane-design.md",
+  },
+  {
+    slug: "insane-search",
+    title: "Insane Search",
+    description:
+      "WebFetch가 차단될 때 우회 접근 전략을 제공합니다. X/Twitter, Reddit, YouTube, 네이버 등 1,858개 사이트를 플랫폼별 최적 방법으로 접근합니다.",
+    icon: "🔍",
+    color: "#059669",
+    author: "fivetaku",
+    source: "https://github.com/fivetaku/insane-search",
+    tags: ["Web Scraping", "Social Media", "YouTube", "Korea Platforms"],
+    addedAt: "2026-04-13",
+    contentFile: "insane-search.md",
+  },
 ];
