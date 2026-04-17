@@ -64,4 +64,17 @@ export const skills: Skill[] = [
     addedAt: "2026-04-13",
     contentFile: "insane-search.md",
   },
+  {
+    slug: "bkit",
+    title: "bkit (Vibecoding Kit)",
+    description:
+      "Claude Code를 풀스택 AI 개발 팀으로 만드는 PDCA 프레임워크. 37개 스킬 · 32개 에이전트로 기획-설계-구현-QA-배포 전 사이클을 자동화합니다.",
+    icon: "⚡",
+    color: "#F59E0B",
+    author: "popup-studio-ai",
+    source: "https://github.com/popup-studio-ai/bkit-claude-code",
+    tags: ["Claude Code", "PDCA", "AI Agent", "Fullstack", "Automation"],
+    addedAt: "2026-04-17",
+    contentFile: "bkit.md",
+  },
 ];
