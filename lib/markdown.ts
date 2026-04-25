@@ -19,6 +19,11 @@ export async function processMarkdown(raw: string): Promise<string> {
   let finalHtml = processed.toString();
 
   finalHtml = finalHtml
+    // 외부 링크에 target="_blank" 추가
+    .replace(
+      /<a href="(https?:\/\/[^"]+)"/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer"'
+    )
     // h2/h3에 id 주입 (이모지·HTML 태그 제거 후 slug)
     .replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (_, level, inner) => {
       const plainText = inner.replace(/<[^>]+>/g, "");

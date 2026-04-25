@@ -77,4 +77,17 @@ export const skills: Skill[] = [
     addedAt: "2026-04-17",
     contentFile: "bkit.md",
   },
+  {
+    slug: "awesome-design-md",
+    title: "Awesome DESIGN.md",
+    description:
+      "Airbnb, Stripe, Apple, Tesla 등 69개 유명 브랜드의 디자인 시스템을 DESIGN.md 파일로 정리한 컬렉션. 프로젝트에 복사하면 AI 에이전트가 즉시 해당 브랜드 스타일로 UI를 생성합니다.",
+    icon: "🖌️",
+    color: "#10B981",
+    author: "VoltAgent",
+    source: "https://github.com/VoltAgent/awesome-design-md",
+    tags: ["DESIGN.md", "Design System", "UI Reference", "AI Agent", "Brand Kit"],
+    addedAt: "2026-04-25",
+    contentFile: "awesome-design-md.md",
+  },
 ];
