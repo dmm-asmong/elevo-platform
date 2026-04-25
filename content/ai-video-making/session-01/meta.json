@@ -1,0 +1,12 @@
+{
+  "sessionNumber": 1,
+  "title": "AI 3종 세트로 첫 영상 완성하기",
+  "duration": "90분",
+  "tool": "Gemini · 미리캔버스 · Vrew",
+  "tags": ["Gemini", "미리캔버스", "Vrew", "AI 영상", "프롬프트", "AI 윤리"],
+  "hasLesson": true,
+  "hasSlideOutline": false,
+  "hasSlideHtml": true,
+  "hasWorksheet": true,
+  "status": "published"
+}

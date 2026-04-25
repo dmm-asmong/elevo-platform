@@ -33,3 +33,16 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# local claude settings
+.claude/settings.local.json
+
+# dev server logs
+*.out.log
+*.err.log
+
+# crash dumps
+*.stackdump
+
+# temp files
+/tmp/

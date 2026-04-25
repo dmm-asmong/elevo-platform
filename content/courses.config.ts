@@ -60,4 +60,14 @@ export const courses: Course[] = [
     status: "active",
     tags: ["ChatGPT", "DALL-E", "Vrew", "숏폼"],
   },
+  {
+    slug: "ai-video-making",
+    title: "생성형 AI 영상제작",
+    description: "카메라 없이 90분 만에 첫 AI 영상 완성. Gemini로 기획하고, 미리캔버스로 이미지를 만들고, Vrew로 편집까지.",
+    icon: "🎬",
+    color: "#E11D48",
+    sessions: 1,
+    status: "active",
+    tags: ["Gemini", "미리캔버스", "Vrew", "AI 영상"],
+  },
 ];
