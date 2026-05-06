@@ -90,4 +90,17 @@ export const skills: Skill[] = [
     addedAt: "2026-04-25",
     contentFile: "awesome-design-md.md",
   },
+  {
+    slug: "master-of-slide",
+    title: "Master of Slide",
+    description:
+      "Markdown/Obsidian 노트를 React 기반 1920×1080 프레젠테이션으로 자동 변환하는 AI 슬라이드 도구. Claude Code의 /slide 명령 한 번으로 한국어 최적화 발표 자료를 완성합니다.",
+    icon: "🎞️",
+    color: "#6366F1",
+    author: "reallygood83",
+    source: "https://github.com/reallygood83/master-of-slide",
+    tags: ["Claude Code", "Presentation", "Markdown", "Slide", "React", "한국어"],
+    addedAt: "2026-05-06",
+    contentFile: "master-of-slide.md",
+  },
 ];
