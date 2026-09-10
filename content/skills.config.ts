@@ -103,4 +103,17 @@ export const skills: Skill[] = [
     addedAt: "2026-05-06",
     contentFile: "master-of-slide.md",
   },
+  {
+    slug: "m3e-canvas",
+    title: "M3E Canvas",
+    description:
+      "브라우저에서 Material 3 Expressive 화면을 드래그 앤 드롭으로 스케치하고, AI 코딩 도구용 프롬프트로 자동 변환하는 바이브코딩 디자인 도구. 화면 간 네비게이션, 테마, 프리뷰까지 지원합니다.",
+    icon: "🎨",
+    color: "#6750A4",
+    author: "lnkiai",
+    source: "https://github.com/lnkiai/m3e-canvas",
+    tags: ["Material Design", "UI Design", "Vibe Coding", "Prompt", "Prototyping"],
+    addedAt: "2026-09-11",
+    contentFile: "m3e-canvas.md",
+  },
 ];
