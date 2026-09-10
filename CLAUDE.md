@@ -65,6 +65,26 @@ elevo-platform/
 | `generative-ai` | 생성형AI 활용법 | coming-soon |
 | `google-workspace` | Google Workspace | coming-soon |
 
+## 스킬 라이브러리
+
+`content/skills.config.ts`에서 관리. 각 스킬은 `slug`, `title`, `description`, `icon`, `color`, `author`, `source`, `tags`, `addedAt`, `contentFile`을 가진다.
+
+| slug | 제목 | 저자 | 추가일 |
+|------|------|------|--------|
+| `gstack` | gstack | Garry Tan (Y Combinator) | 2026-04-01 |
+| `seo-content-writer` | SEO Content Writer | aaron-he-zhu | 2026-04-10 |
+| `insane-design` | Insane Design | fivetaku | 2026-04-13 |
+| `insane-search` | Insane Search | fivetaku | 2026-04-13 |
+| `bkit` | bkit (Vibecoding Kit) | popup-studio-ai | 2026-04-17 |
+| `awesome-design-md` | Awesome DESIGN.md | VoltAgent | 2026-04-25 |
+| `master-of-slide` | Master of Slide | reallygood83 | 2026-05-06 |
+
+### 새 스킬 추가
+1. `content/skills.config.ts`에 스킬 항목 추가
+2. `content/<contentFile>.md` 분석 문서 작성 (한국어, 설치법·사용법·팁 포함)
+
+---
+
 ## 콘텐츠 추가 방법
 
 ### 새 강의 추가

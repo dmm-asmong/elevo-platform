@@ -9,29 +9,11 @@ export default function HomePage() {
     <div className="min-h-screen">
 
       {/* ── HERO ── */}
-      <section className="relative flex items-center px-8 pt-20 pb-16 overflow-hidden">
-        {/* 아주 미세한 노이즈 레이어 */}
-        <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-soft-light z-20"
-             style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/stardust.png")' }} />
-        
-        {/* 배경 히어로 메인 비주얼 */}
-        <div className="absolute top-0 right-0 w-full h-full lg:w-[60%] z-0 pointer-events-none select-none overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#fafafa] via-[#fafafa]/80 to-transparent z-10" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#fafafa] via-transparent to-[#fafafa] z-10" />
-          <img 
-            src="/images/hero.png" 
-            alt="Hero Visual" 
-            className="w-full h-full object-cover lg:object-right opacity-[0.15] grayscale pointer-events-none"
-          />
-        </div>
-
-        {/* 배경 광원 효과 추가 */}
-        <div className="absolute -top-[10%] left-[20%] w-[40%] h-[40%] bg-yellow/20 blur-[150px] rounded-full pointer-events-none" />
-
+      <section className="relative flex items-center px-8 pt-14 pb-10 overflow-hidden">
         <div className="relative z-20 max-w-screen-xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div>
             {/* 고품격 유리 뱃지 */}
-            <div className="inline-flex items-center gap-3 mb-8 px-3 py-1.5 rounded-full border border-black/5 bg-white/70 backdrop-blur-md shadow-sm animate-slide-up">
+            <div className="inline-flex items-center gap-3 mb-5 px-3 py-1.5 rounded-full border border-black/5 bg-white/70 backdrop-blur-md shadow-sm animate-slide-up">
               <div className="relative">
                 <span className="block w-2 w-2 rounded-full bg-[#EAB308] shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
               </div>
@@ -42,19 +24,18 @@ export default function HomePage() {
 
             {/* 메인 헤드라인 - 조화로운 타이포그래피 */}
             <h1
-              className="animate-slide-up font-bold mb-6 tracking-tighter leading-[1.05] text-[#111]"
+              className="animate-slide-up font-bold mb-4 tracking-tighter leading-[1.05] text-[#111]"
               style={{
-                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+                fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
                 fontFamily: "var(--font-display)",
               }}
             >
-              <span className="block opacity-40 italic">Elevating</span>
-              <span className="block italic text-gradient">Your</span>
+              <span className="block opacity-40 italic">Elevating Your</span>
               <span className="block text-[#EAB308] yellow-glow">GenAI</span>
             </h1>
 
             <div className="animate-slide-up delay-100">
-              <p className="text-base leading-relaxed text-[#555] max-w-lg mb-8 font-medium">
+              <p className="text-base leading-relaxed text-[#555] max-w-lg mb-5 font-medium">
                 AI와 함께라면 누구나 상상 속 웹앱을 직접 빌드할 수 있습니다.
                 가장 모던하고 직관적인 AI 코딩 커리큘럼.
               </p>
