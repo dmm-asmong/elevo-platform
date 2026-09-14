@@ -129,4 +129,17 @@ export const skills: Skill[] = [
     addedAt: "2026-09-14",
     contentFile: "frontend-design.md",
   },
+  {
+    slug: "k-skill",
+    title: "k-skill (한국인 맞춤형 스킬 모음)",
+    description:
+      "KTX, KBO, 로또, 당근, 쿠팡, 정부24, 홈택스, HWP 문서 등 한국 실생활·공공·업무에 필요한 125개 이상의 기능을 AI 에이전트가 직접 수행할 수 있게 해주는 한국형 종합 스킬 컬렉션.",
+    icon: "🇰🇷",
+    color: "#0F4C81",
+    author: "NomaDamas",
+    source: "https://github.com/NomaDamas/k-skill",
+    tags: ["Claude Code", "Korea", "Public Data", "HWP", "Automation", "Lifestyle"],
+    addedAt: "2026-09-14",
+    contentFile: "k-skill.md",
+  },
 ];

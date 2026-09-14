@@ -80,6 +80,7 @@ elevo-platform/
 | `master-of-slide` | Master of Slide | reallygood83 | 2026-05-06 |
 | `m3e-canvas` | M3E Canvas | lnkiai | 2026-09-11 |
 | `frontend-design` | Frontend Design | Anthropic | 2026-09-14 |
+| `k-skill` | k-skill (한국인 맞춤형 스킬 모음) | NomaDamas | 2026-09-14 |
 
 ### 새 스킬 추가
 1. `content/skills.config.ts`에 스킬 항목 추가
