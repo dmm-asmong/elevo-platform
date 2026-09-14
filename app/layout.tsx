@@ -38,7 +38,7 @@ export default function RootLayout({
     <html lang="ko" className={`${notoSansKR.variable} ${syne.variable} ${spaceMono.variable}`}>
       <body className="min-h-screen flex">
         <SideNav />
-        <main className="flex-1 ml-0 lg:ml-[280px] min-h-screen">
+        <main className="flex-1 min-h-screen">
           {children}
         </main>
       </body>
