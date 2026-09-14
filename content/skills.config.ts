@@ -116,4 +116,17 @@ export const skills: Skill[] = [
     addedAt: "2026-09-11",
     contentFile: "m3e-canvas.md",
   },
+  {
+    slug: "frontend-design",
+    title: "Frontend Design",
+    description:
+      "Anthropic 공식 디자인 스킬. AI 특유의 뻔한 템플릿(AI Slop)을 깨고 제품의 본질과 타겟에 맞춘 독창적이고 완성도 높은 프론트엔드 UI/UX를 구축하도록 이끕니다.",
+    icon: "✨",
+    color: "#D97757",
+    author: "Anthropic",
+    source: "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+    tags: ["Anthropic", "Claude Code", "Frontend", "UI/UX", "Design System"],
+    addedAt: "2026-09-14",
+    contentFile: "frontend-design.md",
+  },
 ];

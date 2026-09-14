@@ -78,6 +78,8 @@ elevo-platform/
 | `bkit` | bkit (Vibecoding Kit) | popup-studio-ai | 2026-04-17 |
 | `awesome-design-md` | Awesome DESIGN.md | VoltAgent | 2026-04-25 |
 | `master-of-slide` | Master of Slide | reallygood83 | 2026-05-06 |
+| `m3e-canvas` | M3E Canvas | lnkiai | 2026-09-11 |
+| `frontend-design` | Frontend Design | Anthropic | 2026-09-14 |
 
 ### 새 스킬 추가
 1. `content/skills.config.ts`에 스킬 항목 추가
