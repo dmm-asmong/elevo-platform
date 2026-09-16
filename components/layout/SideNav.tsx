@@ -144,6 +144,7 @@ export default function SideNav() {
                       collapsed={collapsed}
                       onClick={() => setOpen(false)}
                       emoji={course.icon}
+                      color={course.color}
                     />
                   );
                 })}
@@ -272,9 +273,10 @@ interface NavItemProps {
   emoji?: string;
   activeIconClass?: string;
   badge?: string;
+  color?: string;
 }
 
-function NavItem({ href, label, isActive, collapsed, onClick, icon, emoji, activeIconClass, badge }: NavItemProps) {
+function NavItem({ href, label, isActive, collapsed, onClick, icon, emoji, activeIconClass, badge, color }: NavItemProps) {
   return (
     <Link
       href={href}
@@ -284,6 +286,12 @@ function NavItem({ href, label, isActive, collapsed, onClick, icon, emoji, activ
         ${isActive ? "text-[#111] bg-black/5 border border-black/5 shadow-sm" : "text-[#666] hover:text-[#222] hover:bg-black/5"}`}
       title={collapsed ? label : undefined}
     >
+      {color && (
+        <span
+          className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full transition-opacity duration-300"
+          style={{ backgroundColor: color, opacity: isActive ? 1 : 0.35 }}
+        />
+      )}
       {icon && (
         <div className={`p-1.5 rounded-lg transition-colors duration-300 ${isActive ? (activeIconClass || "bg-yellow/20 text-[#ca8a04]") : "bg-black/5 text-[#666] group-hover:text-[#444]"}`}>
           {icon}

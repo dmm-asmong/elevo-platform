@@ -31,8 +31,8 @@ export default function CourseCard({ course }: { course: Course }) {
           <div
             className="w-12 h-12 rounded-lg flex items-center justify-center text-xl flex-shrink-0 transition-transform duration-500 group-hover:scale-110"
             style={{
-              background: isActive ? "rgba(0, 0, 0, 0.02)" : "transparent",
-              border: isActive ? "1px solid rgba(0, 0, 0, 0.05)" : "1px solid rgba(0, 0, 0, 0.03)",
+              background: isActive ? `${course.color}14` : "transparent",
+              border: isActive ? `1px solid ${course.color}40` : "1px solid rgba(0, 0, 0, 0.03)",
               boxShadow: isActive ? "0 4px 10px rgba(0,0,0,0.03)" : "none"
             }}
           >

@@ -12,7 +12,7 @@ export interface Course {
 export const courses: Course[] = [
   {
     slug: "vibe-coding",
-    title: "바이브코딩",
+    title: "바이브코딩 (AI Studio)",
     description: "AI와 대화로 웹앱 만들기. 코딩 경험 없는 입문자도 7회차만에 나만의 웹앱을 완성합니다.",
     icon: "⚡",
     color: "#3A7BD5",
