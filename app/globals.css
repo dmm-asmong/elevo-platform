@@ -21,6 +21,17 @@
 
 * { box-sizing: border-box; }
 
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid #a16207;
+  outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline-color: Highlight;
+  }
+}
+
 body {
   background-color: #fafafa;
   background-image: 
