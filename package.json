@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:progress": "node --test tests/learning-progress.test.mjs"
   },
   "keywords": [],
   "author": "",

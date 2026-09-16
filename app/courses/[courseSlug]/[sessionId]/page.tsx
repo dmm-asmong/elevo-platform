@@ -4,6 +4,7 @@ import { courses } from "@/content/courses.config";
 import { getSessionList, getSessionContent } from "@/lib/content";
 import { extractTOC } from "@/lib/toc";
 import ContentTabs from "@/components/course/ContentTabs";
+import SessionProgress from "@/components/course/SessionProgress";
 import StickyTOC from "@/components/viewer/StickyTOC";
 
 interface Props {
@@ -85,7 +86,7 @@ export default async function SessionPage({ params }: Props) {
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="font-mono text-[11px] mb-2" style={{ color: "#888" }}>
-                  {String(session.sessionNumber).padStart(2, "0")} / {String(sessions.length).padStart(2, "0")}
+                  SESSION {String(session.sessionNumber).padStart(2, "0")} / {String(sessions.length).padStart(2, "0")}
                 </div>
                 <h1
                   className="font-black text-[2rem] leading-[1.05] sm:text-4xl mb-2 tracking-tight text-[#111] italic break-keep"
@@ -130,7 +131,7 @@ export default async function SessionPage({ params }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#ffffff] border border-[#eaeaea]">
               <span className="text-[9px] font-black uppercase tracking-wider text-[#888]">
-                Session
+                현재 회차
               </span>
               <span className="text-[11px] font-bold text-[#444] ml-auto font-mono">
                 {String(session.sessionNumber).padStart(2, "0")} / {String(sessions.length).padStart(2, "0")}
@@ -167,6 +168,12 @@ export default async function SessionPage({ params }: Props) {
               </span>
             ))}
           </div>
+          <SessionProgress
+            courseSlug={courseSlug}
+            sessionId={sessionId}
+            sessionIds={sessions.map((item) => item.id)}
+            courseColor={course.color}
+          />
         </header>
 
         {/* 구분선 */}
