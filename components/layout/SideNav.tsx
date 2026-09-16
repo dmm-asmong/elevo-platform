@@ -24,7 +24,7 @@ export default function SideNav() {
       {/* 모바일 토글 */}
       <button
         onClick={() => setOpen(!open)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-sm"
+        className="print-hide lg:hidden fixed top-4 left-4 z-50 w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-sm"
         style={{
           background: "rgba(255, 255, 255, 0.9)",
           color: "#333",
@@ -42,7 +42,7 @@ export default function SideNav() {
       {/* 딤 오버레이 */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 z-30"
+          className="print-hide lg:hidden fixed inset-0 z-30"
           style={{ background: "rgba(0,0,0,0.8)" }}
           onClick={() => setOpen(false)}
         />
@@ -50,7 +50,7 @@ export default function SideNav() {
 
       {/* 사이드바 본체 */}
       <aside
-        className={`fixed top-0 left-0 h-full z-40 flex flex-col transition-all duration-300 ease-in-out
+        className={`print-hide fixed top-0 left-0 h-full z-40 flex flex-col transition-all duration-300 ease-in-out
           ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 overflow-hidden`}
         style={{
           width: `${sidebarWidth}px`,
@@ -255,7 +255,7 @@ export default function SideNav() {
 
       {/* 메인 콘텐츠 영역 스페이서 - 데스크탑에서 사이드바 너비만큼 여백 확보 */}
       <div
-        className="hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out"
+        className="print-hide hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out"
         style={{ width: `${sidebarWidth}px` }}
       />
     </>

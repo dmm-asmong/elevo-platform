@@ -38,10 +38,10 @@ export default async function SessionPage({ params }: Props) {
   const nextSession = sessions[sessionIndex + 1];
 
   return (
-    <div className="relative min-h-screen">
+    <div className="print-page relative min-h-screen">
       {/* 배경 */}
       <div
-        className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-multiply"
+        className="print-hide absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-multiply"
         style={{
           backgroundImage:
             'url("https://www.transparenttextures.com/patterns/stardust.png")',
@@ -49,13 +49,13 @@ export default async function SessionPage({ params }: Props) {
         }}
       />
       <div
-        className="absolute top-0 right-0 w-[60%] h-[40%] blur-[120px] rounded-full pointer-events-none"
+        className="print-hide absolute top-0 right-0 w-[60%] h-[40%] blur-[120px] rounded-full pointer-events-none"
         style={{ background: `${course.color}08` }}
       />
 
-      <div className="relative z-10 mx-auto px-4 py-10 sm:px-6 lg:px-8 lg:py-16" style={{ maxWidth: "1280px" }}>
+      <div className="print-container relative z-10 mx-auto px-4 py-10 sm:px-6 lg:px-8 lg:py-16" style={{ maxWidth: "1280px" }}>
         {/* 브레드크럼 */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] font-bold mb-10 sm:mb-12 uppercase tracking-[0.2em] text-[#666] animate-slide-up">
+        <div className="print-hide flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] font-bold mb-10 sm:mb-12 uppercase tracking-[0.2em] text-[#666] animate-slide-up">
           <Link href="/" className="hover:text-[#ea580c] transition-colors">
             Home
           </Link>
@@ -71,7 +71,7 @@ export default async function SessionPage({ params }: Props) {
         </div>
 
         {/* 헤더 */}
-        <header className="mb-16 animate-slide-up">
+        <header className="print-hide mb-16 animate-slide-up">
           <div className="flex flex-col gap-6 mb-8 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex items-start gap-4 sm:gap-6 min-w-0">
               <div
@@ -177,7 +177,7 @@ export default async function SessionPage({ params }: Props) {
         </header>
 
         {/* 구분선 */}
-        <div className="flex items-center gap-6 mb-10 animate-slide-up delay-100">
+        <div className="print-hide flex items-center gap-6 mb-10 animate-slide-up delay-100">
           <div className="flex flex-col">
             <span
               className="text-[10px] font-mono font-bold tracking-[0.2em] mb-1"
@@ -196,9 +196,9 @@ export default async function SessionPage({ params }: Props) {
         </div>
 
         {/* 콘텐츠 + 사이드 TOC */}
-        <div className="flex gap-8 items-start mb-8 animate-slide-up delay-200">
+        <div className="print-layout flex gap-8 items-start mb-8 animate-slide-up delay-200">
           <div
-            className="flex-1 min-w-0 rounded-[24px] p-4 sm:p-6 shadow-sm overflow-hidden"
+            className="print-document flex-1 min-w-0 rounded-[24px] p-4 sm:p-6 shadow-sm overflow-hidden"
             style={{ background: "#ffffff", border: "1px solid #eaeaea" }}
           >
             <ContentTabs tabs={tabs} />
@@ -210,7 +210,7 @@ export default async function SessionPage({ params }: Props) {
         </div>
 
         {/* 이전/다음 */}
-        <div className="flex justify-between gap-4 animate-slide-up delay-300" style={{ maxWidth: "768px" }}>
+        <div className="print-hide flex justify-between gap-4 animate-slide-up delay-300" style={{ maxWidth: "768px" }}>
           {prevSession ? (
             <Link
               href={`/courses/${courseSlug}/${prevSession.id}`}

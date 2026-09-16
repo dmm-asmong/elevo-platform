@@ -49,7 +49,7 @@ export default function StickyTOC({ headings }: Props) {
   };
 
   return (
-    <aside className="toc-sidebar">
+    <aside className="toc-sidebar print-hide">
       <p className="toc-sidebar-label">목차</p>
       <ol className="toc-sidebar-list">
         {h2s.map((h) => (

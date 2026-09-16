@@ -588,3 +588,50 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+@media print {
+  @page { margin: 16mm; }
+
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+
+  .print-hide,
+  .copy-btn {
+    display: none !important;
+  }
+
+  .print-page,
+  .print-container,
+  .print-layout,
+  .print-document {
+    min-height: auto !important;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .print-content .prose-light {
+    color: #111;
+    font-size: 10.5pt;
+    line-height: 1.65;
+  }
+
+  .print-content :is(h1, h2, h3, h4, pre, blockquote, table, img) {
+    break-inside: avoid;
+  }
+
+  .print-content a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
