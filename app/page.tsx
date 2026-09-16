@@ -41,11 +41,14 @@ export default function HomePage() {
               </p>
               
               <div className="flex flex-wrap gap-3">
-                <button className="px-6 py-3.5 rounded-xl bg-yellow text-[#111] font-black text-[10px] uppercase tracking-[0.2em] shadow-md hover:bg-[#FACC15] transition-all transform active:scale-95">
+                <a
+                  href="#courses"
+                  className="px-6 py-3.5 rounded-xl bg-yellow text-[#111] font-black text-[10px] uppercase tracking-[0.2em] shadow-md hover:bg-[#FACC15] transition-all transform active:scale-95"
+                >
                   Start Training
-                </button>
+                </a>
                 <div className="px-6 py-3.5 rounded-xl border border-black/10 bg-black/5 text-[#666] font-black text-[10px] uppercase tracking-[0.2em]">
-                  7 Sessions
+                  {activeCourses.length} Courses
                 </div>
               </div>
             </div>
@@ -54,7 +57,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 커리큘럼 ── */}
-      <section className="relative px-8 py-20 max-w-screen-xl mx-auto">
+      <section id="courses" className="relative px-8 py-20 max-w-screen-xl mx-auto">
         
         {/* 운영 중 */}
         {activeCourses.length > 0 && (
