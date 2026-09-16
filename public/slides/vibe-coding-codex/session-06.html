@@ -1,0 +1,3500 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6일차 · 공공데이터 API로 지역 축제 검색 MVP 만들기 | AD002 DX5기</title>
+  <style>
+    :root {
+      --ink: #292e41;
+      --body: #373f57;
+      --faint: #8491a7;
+      --canvas: #ffffff;
+      --surface: #f4f6fa;
+      --surface-soft: #f8fafc;
+      --hairline: #d7dce5;
+      --divider: #eaedf4;
+      --blue: #4876ef;
+      --blue-strong: #3157dd;
+      --blue-bright: #2d67ff;
+      --blue-tint: #eff5ff;
+      --coral: #ff5656;
+      --coral-tint: #fff0f0;
+      --green: #10b981;
+      --green-tint: #ecfdf5;
+      --r-card: 16px;
+      --r-chip: 4px;
+      --r-pill: 9999px;
+      --sh-soft: rgba(55, 63, 87, .10) 0 4px 12px;
+      --f: "Pretendard", "Malgun Gothic", "맑은 고딕", dotum, gulim, -apple-system, BlinkMacSystemFont, sans-serif;
+      --f-mono: "D2Coding", Consolas, Menlo, monospace;
+    }
+
+    html {
+      font-size: 30.7987px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--f);
+      color: var(--ink);
+      background: var(--surface);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    #progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: var(--blue);
+      z-index: 60;
+      transition: width .32s cubic-bezier(.25, .1, .25, 1);
+      border-radius: 0 var(--r-pill) var(--r-pill) 0;
+    }
+
+    #deck {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-left: -960px;
+      margin-top: -540px;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: center center;
+      background: var(--canvas);
+      box-shadow: var(--sh-soft);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      padding: 1.78rem 2.95rem 2.59rem;
+      display: flex;
+      flex-direction: column;
+      background: var(--canvas);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .2s cubic-bezier(.2, .6, .25, 1);
+    }
+
+    .slide.active,
+    .slide.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    .title-slide {
+      justify-content: center;
+      padding: 3.8rem 5.2rem;
+    }
+
+    .s-head {
+      margin-bottom: .95rem;
+      flex-shrink: 0;
+    }
+
+    .title-slide .s-head {
+      margin-bottom: 0;
+    }
+
+    .s-eyebrow,
+    .s-meta {
+      font-size: calc(.72rem * 1.1);
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: .34rem;
+    }
+
+    .s-title {
+      font-size: calc(1.78rem * 1.1);
+      font-weight: 780;
+      line-height: 1.22;
+      letter-spacing: -.02em;
+      word-break: keep-all;
+    }
+
+    .title-slide .s-title {
+      font-size: calc(2.55rem * 1.1);
+      font-weight: 850;
+      line-height: 1.23;
+    }
+
+    .hl {
+      color: var(--blue);
+    }
+
+    .s-lead {
+      font-size: calc(.98rem * 1.1);
+      color: var(--body);
+      margin-top: .42rem;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .title-slide .s-lead {
+      font-size: calc(1.1rem * 1.1);
+      max-width: 44rem;
+    }
+
+    .s-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: .85rem;
+    }
+
+    .s-body--top {
+      justify-content: flex-start;
+    }
+
+    .s-body--tight {
+      gap: .56rem;
+    }
+
+    .s-body--dense {
+      gap: .4rem;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .9rem;
+      align-items: stretch;
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.2rem .8rem;
+    }
+
+    .grid4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .72rem;
+    }
+
+    .grid-2-1 {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: .9rem;
+    }
+
+    .grid-1-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: .9rem;
+    }
+
+    .card {
+      min-width: 0;
+      background: none;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+    }
+
+    .grid2>.card:not(.card--tint):not(.card--blue):not(.card--warn),
+    .grid3>.card:not(.card--tint):not(.card--blue):not(.card--warn),
+    .grid4>.card:not(.card--tint):not(.card--blue):not(.card--warn) {
+      border-left: 1px solid var(--hairline);
+      padding-left: .9rem;
+    }
+
+    /* 박스 카드 옆의 열린 카드·목록은 박스와 같은 위아래 여백을 줘 첫 줄 높이를 맞춘다 */
+    :is(.grid2, .grid3, .grid4):has(> :is(.card--tint, .card--blue, .card--warn))>.card:not(.card--tint):not(.card--blue):not(.card--warn),
+    .grid2:has(> :is(.card--tint, .card--blue, .card--warn))>.open-list {
+      padding-block: calc(.78rem + 1px);
+    }
+
+    .grid2:has(> :is(.card--tint, .card--blue, .card--warn))>.open-list {
+      justify-content: flex-start;
+    }
+
+    .card--tint {
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: var(--r-card);
+      padding: .78rem .92rem;
+    }
+
+    .card--blue {
+      background: var(--blue-tint);
+      border: 1px solid #c9daff;
+      border-radius: var(--r-card);
+      padding: .78rem .92rem;
+    }
+
+    .card--warn {
+      background: var(--coral-tint);
+      border: 1px solid #fecaca;
+      border-left: 4px solid var(--coral);
+      border-radius: var(--r-card);
+      padding: .78rem .92rem;
+    }
+
+    .card-t {
+      font-size: calc(1.04rem * 1.1);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.34;
+      word-break: keep-all;
+    }
+
+    .card-p,
+    .ul {
+      font-size: calc(.86rem * 1.1);
+      color: var(--body);
+      line-height: 1.62;
+      word-break: keep-all;
+    }
+
+    .ul {
+      padding-left: 1.05rem;
+    }
+
+    .ul li+li {
+      margin-top: .22rem;
+    }
+
+    code {
+      font-family: var(--f-mono);
+      font-size: .9em;
+      color: var(--blue-strong);
+      background: #eef4ff;
+      padding: .05rem .2rem;
+      border-radius: 4px;
+    }
+
+    .chip {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: .3rem;
+      font-size: calc(.72rem * 1.1);
+      font-weight: 800;
+      padding: .18rem .55rem;
+      border-radius: var(--r-chip);
+      background: var(--surface);
+      color: var(--blue);
+      border: 1px solid var(--hairline);
+    }
+
+    .note {
+      border-top: 1px solid var(--hairline);
+      color: var(--body);
+      padding: .7rem 0 0;
+      font-size: calc(.88rem * 1.1);
+      line-height: 1.6;
+      display: flex;
+      gap: 1.1rem;
+      align-items: flex-start;
+      word-break: keep-all;
+    }
+
+    .note--key,
+    .note--warn {
+      border-top: 0;
+      border-radius: var(--r-card);
+      padding: .64rem .82rem;
+    }
+
+    .note--key {
+      background: var(--canvas);
+      border: 1px solid var(--blue);
+      border-left: 4px solid var(--blue);
+    }
+
+    .note--warn {
+      background: var(--coral-tint);
+      border: 1px solid #fecaca;
+      border-left: 4px solid var(--coral);
+    }
+
+    .note-ic {
+      flex-shrink: 0;
+      font-weight: 800;
+      color: var(--blue-strong);
+    }
+
+    .open-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      justify-content: center;
+    }
+
+    .open-item {
+      word-break: keep-all;
+      display: flex;
+      gap: 1rem;
+      align-items: baseline;
+      padding-left: 1rem;
+      border-left: 3px solid var(--hairline);
+    }
+
+    .open-num {
+      font-family: var(--f-mono);
+      font-weight: 700;
+      color: var(--blue);
+      flex-shrink: 0;
+      min-width: 2ch;
+    }
+
+    .open-item b {
+      color: var(--ink);
+    }
+
+    .open-item p {
+      margin: .2rem 0 0;
+      color: var(--body);
+    }
+
+    .flow {
+      display: grid;
+      gap: 1.1rem;
+    }
+
+    .flow--6 {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .flow--5 {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .flow--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .flow-item {
+      position: relative;
+      border-top: 3px solid var(--hairline);
+      padding: 1.1rem .7rem 0;
+      min-width: 0;
+    }
+
+    .flow-item.is-active,
+    .flow-item:first-child {
+      border-top-color: var(--blue);
+    }
+
+    .flow-item:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      top: -.74rem;
+      right: -.45rem;
+      color: var(--blue);
+      background: #fff;
+      font-weight: 900;
+    }
+
+    .flow-num {
+      color: var(--blue);
+      font: 800 calc(1rem * 1.1)/1 var(--f-mono);
+      margin-bottom: .6rem;
+    }
+
+    .flow-title {
+      font-size: calc(1.22rem * 1.1);
+      line-height: 1.42;
+      font-weight: 800;
+      word-break: keep-all;
+    }
+
+    .flow-text {
+      color: var(--body);
+      font-size: calc(1rem * 1.1);
+      line-height: 1.5;
+      margin-top: .45rem;
+      word-break: keep-all;
+    }
+
+    .vflow {
+      display: flex;
+      flex-direction: column;
+      gap: .12rem;
+    }
+
+    .vitem {
+      display: flex;
+      gap: .7rem;
+      min-width: 0;
+    }
+
+    .vrail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .vnum {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: var(--r-pill);
+      background: var(--blue);
+      color: #fff;
+      font-size: calc(.72rem * 1.1);
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+    }
+
+    .vline {
+      flex: 1;
+      width: 2px;
+      background: var(--hairline);
+      margin: .22rem 0;
+    }
+
+    .vitem:last-child .vline {
+      display: none;
+    }
+
+    .vcard {
+      flex: 1;
+      padding: .05rem 0 .54rem;
+      min-width: 0;
+    }
+
+    .vlabel {
+      font-size: calc(.9rem * 1.1);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.42;
+      word-break: keep-all;
+    }
+
+    .vtext {
+      font-size: calc(.82rem * 1.1);
+      color: var(--body);
+      line-height: 1.58;
+      margin-top: .18rem;
+      word-break: keep-all;
+    }
+
+    .cmp {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .9rem;
+    }
+
+    .cmp-col {
+      border-radius: var(--r-card);
+      padding: .72rem .86rem;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      min-width: 0;
+    }
+
+    .cmp-col.bad {
+      background: var(--coral-tint);
+      border: 1px solid #fecaca;
+    }
+
+    .cmp-col.good {
+      background: var(--blue-tint);
+      border: 1px solid #c9daff;
+    }
+
+    .cmp-h {
+      font-size: calc(.98rem * 1.1);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .cmp-p {
+      font-size: calc(.84rem * 1.1);
+      color: var(--body);
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+
+    .tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: calc(.84rem * 1.1);
+      background: var(--canvas);
+      border-radius: var(--r-card);
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+    }
+
+    .tbl th {
+      padding: .68rem 1.1rem;
+      background: var(--surface);
+      font-weight: 800;
+      color: var(--ink);
+      text-align: left;
+      border-bottom: 1px solid var(--hairline);
+    }
+
+    .tbl td {
+      padding: .64rem 1.1rem;
+      border-bottom: 1px solid var(--divider);
+      color: var(--body);
+      line-height: 1.65;
+      vertical-align: middle;
+    }
+
+    .tbl tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tbl--dense th {
+      padding: .52rem .88rem;
+    }
+
+    .tbl--dense td {
+      padding: .48rem .88rem;
+      line-height: 1.55;
+    }
+
+    .screen {
+      background: #fff;
+      border: 1px solid var(--hairline);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(17, 42, 128, .09);
+      overflow: hidden;
+    }
+
+    .screen-bar {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .45rem .72rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--hairline);
+    }
+
+    .screen-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #cbd5e1;
+    }
+
+    .screen-body {
+      padding: .9rem 1rem;
+    }
+
+    .festival-card {
+      display: grid;
+      grid-template-columns: 7rem 1fr;
+      gap: .75rem;
+      padding: .58rem 0;
+      border-top: 1px solid var(--divider);
+    }
+
+    .festival-card:first-child {
+      border-top: 0;
+    }
+
+    .thumb {
+      border-radius: 12px;
+      background: var(--blue-tint);
+      border: 1px dashed #aec5ff;
+      min-height: 4.6rem;
+      display: grid;
+      place-items: center;
+      color: var(--blue-strong);
+      font-weight: 800;
+      font-size: calc(.72rem * 1.1);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      border-radius: var(--r-pill);
+      padding: .18rem .62rem;
+      font-size: calc(.72rem * 1.1);
+      font-weight: 800;
+      background: var(--surface);
+      color: var(--body);
+      width: fit-content;
+    }
+
+    .status.ok {
+      background: var(--green-tint);
+      color: #047857;
+    }
+
+    .status.warn {
+      background: var(--coral-tint);
+      color: #c53030;
+    }
+
+    .status.blue {
+      background: var(--blue-tint);
+      color: var(--blue-strong);
+    }
+
+    .prompt {
+      position: relative;
+      font-family: var(--f);
+      font-size: calc(.8rem * 1.1);
+      line-height: 1.68;
+      white-space: pre-line;
+      text-align: left;
+    }
+
+    .prompt--console {
+      position: relative;
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-left: 5px solid var(--blue);
+      border-radius: 12px;
+      padding: 0;
+      color: #f8fafc;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .22);
+      text-align: left;
+      overflow: visible;
+    }
+
+    .prompt__bar {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      flex-wrap: nowrap;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: .45rem 5.4rem .45rem .9rem;
+    }
+
+    .prompt__keys {
+      margin-left: auto;
+      color: #94a3b8;
+      font-size: calc(.64rem * 1.1);
+      white-space: nowrap;
+    }
+
+    .prompt__keys kbd {
+      padding: .12rem .28rem;
+      border: 1px solid #64748b;
+      border-radius: .28rem;
+      background: #0f172a;
+      color: #f8fafc;
+      font: inherit;
+    }
+
+    .prompt__dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .prompt__dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot--red {
+      background: #ef4444;
+    }
+
+    .dot--amber {
+      background: #f59e0b;
+    }
+
+    .dot--green {
+      background: #10b981;
+    }
+
+    .prompt__tools {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .prompt__badge {
+      font-family: var(--f-mono);
+      font-size: calc(.65rem * 1.1);
+      font-weight: 800;
+      color: #94a3b8;
+      background: #1e293b;
+      padding: .15rem .45rem;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .prompt__copy-hint {
+      font-size: calc(.68rem * 1.1);
+      color: #fff;
+      background: #0284c7;
+      padding: .1rem .4rem;
+      border-radius: 4px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .prompt__code {
+      font-family: var(--f);
+      font-size: calc(.83rem * 1.1);
+      line-height: 1.58;
+      color: #f1f5f9;
+      padding: .85rem 1.2rem;
+      white-space: pre-line;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .prompt__code--cols {
+      column-count: 2;
+      column-gap: 2.2rem;
+      column-rule: 1px solid #334155;
+    }
+
+    .prompt__code--cols3 {
+      column-count: 3;
+      column-gap: 1.5rem;
+      column-rule: 1px solid #334155;
+    }
+
+    .prompt--compact .prompt__bar {
+      padding-block: .32rem;
+    }
+
+    .prompt--compact .prompt__code {
+      line-height: 1.48;
+      padding-block: .68rem;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: .35rem;
+      right: .65rem;
+      z-index: 2;
+      font-family: var(--f);
+      font-size: calc(.72rem * 1.1);
+      font-weight: 800;
+      padding: .35rem .75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      box-shadow: 0 2px 8px rgba(43, 92, 230, .4);
+      transition: all .15s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--blue-strong);
+      transform: translateY(-1px);
+    }
+
+    .copy-btn.is-done {
+      background: var(--green);
+    }
+
+    .bubble {
+      border-radius: 14px;
+      padding: .53rem .78rem;
+      font-size: calc(.88rem * 1.1);
+      line-height: 1.58;
+      word-break: keep-all;
+    }
+
+    .bubble--me {
+      background: var(--blue-tint);
+      border: 1px solid #bfd2ff;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .bubble--ai {
+      background: #fff;
+      border: 1px solid var(--hairline);
+      color: var(--body);
+      font-weight: 600;
+    }
+
+    .chat-row {
+      display: flex;
+      gap: .65rem;
+      align-items: flex-end;
+    }
+
+    .chat-row--ai {
+      justify-content: flex-end;
+    }
+
+    .chat-content {
+      max-width: 78%;
+    }
+
+    .chat-row--ai .chat-content {
+      text-align: right;
+    }
+
+    .bubble-who {
+      font-size: calc(.74rem * 1.1);
+      color: var(--faint);
+      font-weight: 800;
+      margin-bottom: .2rem;
+    }
+
+    #dots {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: min(7px, .28vw);
+      z-index: 80;
+      flex-wrap: nowrap;
+      justify-content: center;
+    }
+
+    #dots button {
+      width: min(8px, .4vw);
+      height: min(8px, .4vw);
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 0;
+      background: #c9d1df;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    #dots button.on {
+      background: var(--blue);
+      transform: scale(1.55);
+    }
+
+    #counter,
+    #hint {
+      position: fixed;
+      z-index: 80;
+      color: var(--faint);
+      font-size: 13px;
+      background: rgba(255, 255, 255, .86);
+      border: 1px solid rgba(215, 220, 229, .75);
+      border-radius: 999px;
+      padding: 6px 10px;
+      backdrop-filter: blur(8px);
+    }
+
+    #counter {
+      right: 20px;
+      bottom: 18px;
+    }
+
+    #hint {
+      left: 20px;
+      bottom: 18px;
+    }
+
+    .edit-hotzone {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 82px;
+      height: 82px;
+      z-index: 10000;
+    }
+
+    .edit-toggle {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--hairline);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .92);
+      color: var(--blue);
+      font-size: 20px;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10001;
+      box-shadow: var(--sh-soft);
+    }
+
+    .edit-toggle.show,
+    .edit-toggle.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    body.editing [data-editable] {
+      outline: 2px dashed rgba(72, 118, 239, .45);
+      outline-offset: 4px;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .45s cubic-bezier(.16, 1, .3, 1), transform .45s cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .slide.visible .reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @media print {
+
+      html,
+      body {
+        width: 1920px;
+        height: auto;
+        overflow: visible;
+        background: #fff;
+      }
+
+      #deck {
+        position: static;
+        margin: 0;
+        transform: none !important;
+        box-shadow: none;
+      }
+
+      .slide {
+        position: relative;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        break-after: page;
+      }
+
+      #progress,
+      #dots,
+      #counter,
+      #hint,
+      .edit-hotzone,
+      .edit-toggle {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="progress"></div>
+  <main id="deck" aria-live="polite">
+    <section class="slide title-slide active visible">
+      <div class="s-head">
+        <div class="s-meta">DAY 06 · PUBLIC DATA API</div>
+        <h1 class="s-title" data-editable>공공데이터 API로<br><span class="hl">지역·기간·키워드 축제 검색 앱</span> 만들기</h1>
+        <p class="s-lead" data-editable>매뉴얼을 AI와 분석하고, <br>단일 HTML 화면과 안전한 서버 함수를 만든 뒤 GitHub와 Vercel에 배포합니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">5일차 연결</div>
+        <h2 class="s-title" data-editable>5일차는 <span class="hl">보내기</span>, 6일차는 <span class="hl">가져오기</span></h2>
+        <p class="s-lead" data-editable>이미 배운 fetch와 배포 경험을 실제 공공데이터를 보여주는 서비스로 확장합니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card"><span class="chip">5일차</span>
+            <div class="card-t">내 화면 → Google Sheets</div>
+            <p class="card-p">사용자가 입력한 값을 Apps Script로 보내 저장했습니다.</p>
+          </div>
+          <div class="card card--blue"><span class="chip">6일차</span>
+            <div class="card-t">공공데이터 → 내 화면</div>
+            <p class="card-p">내 서버 함수가 관광공사 데이터를 받아 카드 목록으로 전달합니다.</p>
+          </div>
+        </div>
+        <div class="note note--key"><span class="note-ic">핵심</span>
+          <div>외부 데이터를 가져오되, 인증키 값은 화면과 코드와 GitHub 어디에도 남기지 않습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">완성본 관찰</div>
+        <h2 class="s-title" data-editable>먼저 <span class="hl">완성 결과</span>를 사용자처럼 눌러봅니다</h2>
+        <p class="s-lead" data-editable>검색 조건을 바꾸면 카드 목록과 상태 안내가 함께 달라지는지 관찰합니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="card card--blue">
+          <div class="card-t">우리 지역 축제 찾기</div>
+          <div class="grid4">
+            <div><span class="chip">지역</span>
+              <p class="card-p">서울</p>
+            </div>
+            <div><span class="chip">시작일</span>
+              <p class="card-p">2026.09.01</p>
+            </div>
+            <div><span class="chip">종료일</span>
+              <p class="card-p">2026.09.30</p>
+            </div>
+            <div><span class="chip">키워드</span>
+              <p class="card-p">불꽃</p>
+            </div>
+          </div>
+        </div>
+        <div class="grid3">
+          <div class="card"><span class="status blue">검색 중</span>
+            <div class="card-t">로딩 상태</div>
+          </div>
+          <div class="card"><span class="status ok">검색 완료</span>
+            <div class="card-t">축제 카드 목록</div>
+          </div>
+          <div class="card"><span class="status warn">결과 없음·오류</span>
+            <div class="card-t">서로 다른 안내</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 기초 개념 파트 · 출처와 확인일(2026-09-13)은 6일차_교안.md 5.3 참고 ═══ -->
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">BEFORE STEP 01 · 기초 개념</div>
+        <h1 class="s-title" data-editable>코드보다 먼저<br><span class="hl">네 단어</span>를 이해합니다</h1>
+        <p class="s-lead" data-editable>공공데이터 · API · 인증키 · JSON <br>오늘 실습의 모든 단계에 이 네 단어가 다시 나옵니다.</p>
+      </div>
+    </section>
+
+    <!-- 출처: 공공데이터법 제2조 / data.go.kr 이용정책(공공누리) / data.go.kr/data/15101578 (2026-09-13) -->
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기초 개념 ① 공공데이터</div>
+        <h2 class="s-title" data-editable>공공데이터는 <span class="hl">공공기관이 모두에게 열어 둔 자료</span>입니다</h2>
+        <p class="s-lead" data-editable>정부·지자체·공공기관이 업무를 하며 만들거나 모은 전자 자료를, 법에 따라 국민이 활용할 수 있게 개방한 것입니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue"><span class="chip">법의 정의 · 공공데이터법 제2조</span>
+            <div class="card-t" data-editable>공공기관이 법령에서 정한 목적으로 만들거나 취득해 관리하는, 전자적 방식으로 처리된 자료·정보</div>
+            <p class="card-p" data-editable>예: 축제·관광지 정보, 날씨 예보, 버스 도착 시간, 인구 통계, 약국 위치</p>
+          </div>
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">01</span>
+              <div><b>누구나 이용할 수 있습니다</b>
+                <p>개인·회사 구분 없이 공공데이터포털에서 찾아 쓸 수 있습니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">02</span>
+              <div><b>이용 조건은 데이터마다 다릅니다</b>
+                <p>상업적 이용·출처 표시 여부는 각 데이터에 붙은 <b>공공누리 유형</b>으로 확인합니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">03</span>
+              <div><b>오늘 쓰는 관광공사 데이터</b>
+                <p>무료이며 이용허락범위에 제한이 없습니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 출처: 각 포털 Open API 안내 페이지 (2026-09-13 운영 확인) -->
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기초 개념 ① 공공데이터 · 제공처</div>
+        <h2 class="s-title" data-editable>공공데이터는 <span class="hl">이런 창구</span>에서 받습니다</h2>
+        <p class="s-lead" data-editable>전국 데이터는 공공데이터포털에 모이고, 지자체·분야별 기관도 자체 창구를 운영합니다.</p>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>창구</th>
+              <th>주소</th>
+              <th>주로 찾는 데이터</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>공공데이터포털</b> <span class="chip">오늘 사용</span></td>
+              <td><code>data.go.kr</code></td>
+              <td>전국 공공기관의 파일·오픈API를 모은 중앙 창구</td>
+            </tr>
+            <tr>
+              <td>서울 열린데이터광장</td>
+              <td><code>data.seoul.go.kr</code></td>
+              <td>서울시 교통·문화·생활 데이터</td>
+            </tr>
+            <tr>
+              <td>경기데이터드림</td>
+              <td><code>data.gg.go.kr</code></td>
+              <td>경기도와 도내 시군 데이터</td>
+            </tr>
+            <tr>
+              <td>기상청 API허브</td>
+              <td><code>apihub.kma.go.kr</code></td>
+              <td>날씨 관측·예보·기후</td>
+            </tr>
+            <tr>
+              <td>국가통계포털 KOSIS</td>
+              <td><code>kosis.kr/openapi</code></td>
+              <td>인구·경제·사회 통계표</td>
+            </tr>
+            <tr>
+              <td>문화 빅데이터 플랫폼</td>
+              <td><code>bigdata-culture.kr</code></td>
+              <td>공연·전시·여가 등 문화 분야</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note"><span class="note-ic">찾는 요령</span>
+          <div>data.go.kr에서 검색한 뒤 <b>오픈API</b> 탭을 확인합니다. 같은 이름이라도 파일데이터 탭과는 받는 방법이 다릅니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기초 개념 ① 공공데이터 · 받는 방법</div>
+        <h2 class="s-title" data-editable>파일로 받거나, <span class="hl">API로 그때그때 물어봅니다</span></h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">01</span>
+              <div><b>파일데이터 · CSV·엑셀 내려받기</b>
+                <p>내려받은 순간의 내용으로 고정된 표입니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">02</span>
+              <div><b>새 내용이 생기면</b>
+                <p>파일을 다시 받아 교체해야 화면에 반영됩니다.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card card--blue"><span class="chip">오늘 사용</span>
+            <div class="card-t" data-editable>오픈API · 조건을 넣어 요청하면 그 순간의 결과가 옵니다</div>
+            <p class="card-p" data-editable>"서울, 9월에 열리는 축제"처럼 조건을 바꿀 때마다 기관 서버가 최신 목록을 돌려줍니다. 검색 버튼을 누를 때마다 결과가 달라지는
+              앱에는 이 방식이 맞습니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기초 개념 ② API</div>
+        <h2 class="s-title" data-editable>API는 <span class="hl">정해진 방식으로 주문하는 창구</span>입니다</h2>
+        <p class="s-lead" data-editable>우리는 기관의 데이터베이스(주방)에 직접 들어가지 않고, 규칙에 맞게 주문해서 결과만 받습니다.</p>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>식당에서</th>
+              <th>API에서</th>
+              <th>오늘 실습의 예</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>메뉴판</td>
+              <td>주문할 수 있는 기능·조건 안내</td>
+              <td>관광공사 활용매뉴얼</td>
+            </tr>
+            <tr>
+              <td>주문 창구</td>
+              <td>API · 기능별 요청 주소(엔드포인트)</td>
+              <td><code>searchFestival2</code></td>
+            </tr>
+            <tr>
+              <td>주문서 내용</td>
+              <td>요청에 붙이는 조건(파라미터)</td>
+              <td>지역·시작일·종료일</td>
+            </tr>
+            <tr>
+              <td>회원 확인</td>
+              <td>인증키</td>
+              <td>공공데이터포털에서 발급한 내 키</td>
+            </tr>
+            <tr>
+              <td>나온 음식</td>
+              <td>응답 데이터</td>
+              <td>축제 목록 JSON</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 요청 주소는 실습자료/api/festivals.js 45~53행과 일치해야 한다 -->
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기초 개념 ② API · 요청 주소</div>
+        <h2 class="s-title" data-editable>API 요청은 <span class="hl">주소 한 줄</span>에 모두 담깁니다</h2>
+        <p class="s-lead" data-editable><code>?</code> 뒤부터가 조건이고, 조건끼리는 <code>&amp;</code>로 잇습니다.</p>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>주소 조각</th>
+              <th>뜻</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>https://apis.data.go.kr/B551011/KorService2</code></td>
+              <td>창구 주소 · 한국관광공사 국문 관광정보 서비스</td>
+            </tr>
+            <tr>
+              <td><code>/searchFestival2</code></td>
+              <td>기능 · 행사정보 조회</td>
+            </tr>
+            <tr>
+              <td><code>?serviceKey=●●●●</code></td>
+              <td>인증키 · 실제 값은 화면에 보이면 안 됩니다</td>
+            </tr>
+            <tr>
+              <td><code>&amp;_type=json</code></td>
+              <td>응답 형식 · JSON으로 받기</td>
+            </tr>
+            <tr>
+              <td><code>&amp;eventStartDate=20260901&amp;lDongRegnCd=11</code></td>
+              <td>검색 조건 · 2026년 9월 1일부터, 서울</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note"><span class="note-ic">오늘은</span>
+          <div>이 주소를 직접 타이핑하지 않습니다. 서버 함수 <code>api/festivals.js</code>가 화면의 조건을 받아 주소를 만듭니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 출처: data.go.kr/data/15101578 (개발계정 자동승인·1,000회), API신청가이드.md 마이페이지 확인 (2026-09-13) -->
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기초 개념 ③ 인증키</div>
+        <h2 class="s-title" data-editable>인증키는 <span class="hl">나에게만 발급된 이용 열쇠</span>입니다</h2>
+        <p class="s-lead" data-editable>기관은 인증키로 누가 얼마나 요청하는지 확인하고, 한 사람이 너무 많이 호출하지 않도록 한도를 둡니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">01</span>
+              <div><b>활용신청을 하면 발급됩니다</b>
+                <p>관광공사 서비스는 개발계정 자동승인, 하루 1,000회까지 호출할 수 있습니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">02</span>
+              <div><b>마이페이지에 키 1개가 보입니다</b>
+                <p><code>%2B</code>처럼 <code>%</code>가 섞인 긴 문자열입니다. 형태 변환은 서버 코드가 처리합니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">03</span>
+              <div><b>비밀번호처럼 다룹니다</b>
+                <p>채팅·<code>index.html</code>·GitHub에 붙이면 다른 사람이 내 호출 한도를 써 버릴 수 있습니다.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card card--blue"><span class="chip">키가 머무는 곳</span>
+            <div class="card-t">브라우저 화면에는 키가 없습니다</div>
+            <ul class="ul">
+              <li><b>내 화면</b> <code>index.html</code> → 키 없이 <code>/api/festivals</code>에 요청</li>
+              <li><b>서버 함수</b> <code>api/festivals.js</code> → 환경변수 <code>DATA_GO_KR_API_KEY</code>에서 키를 꺼냄</li>
+              <li><b>공공데이터 API</b> → 키를 확인하고 축제 목록을 돌려줌</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기초 개념 ④ JSON</div>
+        <h2 class="s-title" data-editable><span class="hl">JSON</span>은 데이터를 주고받기 위한 텍스트 형식입니다</h2>
+        <p class="s-lead" data-editable>화면 모양을 저장하는 파일이 아니라, 이름과 값을 일정한 규칙으로 묶어 둔 데이터입니다.</p>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="grid2">
+          <div class="card card--blue">
+            <div class="card-t">JSON에서 보는 기호</div>
+            <table class="tbl">
+              <tbody>
+                <tr>
+                  <td><code>{ }</code></td>
+                  <td>관련된 이름과 값을 묶는 객체</td>
+                </tr>
+                <tr>
+                  <td><code>[ ]</code></td>
+                  <td>여러 항목을 순서대로 담는 배열</td>
+                </tr>
+                <tr>
+                  <td><code>&quot;이름&quot;: 값</code></td>
+                  <td>키와 값 한 쌍</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-t">기본 작성 규칙</div>
+            <ul class="ul">
+              <li>문자열과 키 이름은 큰따옴표로 감싼다.</li>
+              <li>항목 사이는 쉼표로 구분한다.</li>
+              <li>마지막 항목 뒤에는 쉼표를 붙이지 않는다.</li>
+              <li>값은 문자·숫자·참/거짓·null·객체·배열이 될 수 있다.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="note"><span class="note-ic">예시</span>
+          <div>
+            <code>{ &quot;title&quot;: &quot;도산 안창호의 날 기념행사&quot;, &quot;addr1&quot;: &quot;서울 강남구 도산대로 320&quot; }</code><br>같은
+            내용을 XML은 <code>&lt;title&gt;…&lt;/title&gt;</code> 태그로 감쌉니다. 관광공사 API는 둘 다 제공하므로 <code>_type=json</code>으로
+            JSON을 요청합니다.</div>
+        </div>
+        <div class="note note--key"><span class="note-ic">구분</span>
+          <div>HTML은 화면의 구조를 만들고, JSON은 화면에 채울 데이터를 전달합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">완료 기준</div>
+        <h2 class="s-title" data-editable>오늘의 완료는 <span class="hl">화면·데이터·배포·수정</span>으로 증명합니다</h2>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>증거</th>
+              <th>확인할 내용</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>검색</td>
+              <td>지역·시작일·종료일·키워드 조건이 작동한다.</td>
+            </tr>
+            <tr>
+              <td>결과</td>
+              <td>축제명·주소·기간·대표 이미지가 카드 목록으로 표시된다.</td>
+            </tr>
+            <tr>
+              <td>상태</td>
+              <td>검색 중·결과 없음·오류를 서로 다르게 안내한다.</td>
+            </tr>
+            <tr>
+              <td>저장·배포</td>
+              <td>GitHub에 반영되고 Vercel 주소에서 실제 데이터가 보인다.</td>
+            </tr>
+            <tr>
+              <td>보안</td>
+              <td>실제 키가 index.html·GitHub·응답·로그에 나타나지 않는다.</td>
+            </tr>
+            <tr>
+              <td>심화</td>
+              <td>원하는 부분 하나를 수정하고 다시 검증·배포한다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">파일 경계</div>
+        <h2 class="s-title" data-editable><span class="hl">단일 HTML 화면</span>과 <span class="hl">서버 함수</span>는 역할이 다릅니다
+        </h2>
+        <p class="s-lead" data-editable>프로젝트 전체가 한 파일이라는 뜻이 아니라, 화면을 구성하는 HTML·CSS·JavaScript가 index.html 하나에 있다는 뜻입니다.
+        </p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue"><span class="chip">사용자가 보는 화면</span>
+            <div class="card-t"><code>index.html</code></div>
+            <p class="card-p">지역·기간·키워드 입력, 버튼, 상태 안내, 카드 렌더링을 한 파일에 담습니다.</p>
+          </div>
+          <div class="card"><span class="chip">서버에서만 실행</span>
+            <div class="card-t"><code>api/festivals.js</code></div>
+            <p class="card-p">환경변수의 API 키로 관광공사 API를 호출하고 필요한 데이터만 돌려줍니다.</p>
+          </div>
+        </div>
+        <div class="note"><span class="note-ic">원칙</span>
+          <div>키 값은 어느 파일에도 적지 않습니다. 서버 함수는 환경변수 이름만 읽습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">오늘의 로드맵</div>
+        <h2 class="s-title" data-editable>여섯 단계로 <span class="hl">한 방향으로만</span> 진행합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--6">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">매뉴얼 분석</div>
+            <div class="flow-text">AI와 공식 문서 읽기</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">웹앱 추천</div>
+            <div class="flow-text">가능성 비교·축제 선택</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">웹앱 제작</div>
+            <div class="flow-text">샘플 화면 → 실제 API 연결</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">GitHub</div>
+            <div class="flow-text">보안 점검 후 push</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">05</div>
+            <div class="flow-title">Vercel</div>
+            <div class="flow-text">환경변수·배포·검증</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">06</div>
+            <div class="flow-title">자유 수정</div>
+            <div class="flow-text">한 가지 개선·재배포</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">STEP 01 · API 매뉴얼 분석</div>
+        <h1 class="s-title" data-editable>코드보다 먼저<br><span class="hl">공식 문서에서 가능한 것</span>을 찾습니다</h1>
+        <p class="s-lead" data-editable>AI에게 문서를 맡기되, 기능명·입력값·응답값의 근거를 함께 요구합니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">사용할 실습자료</div>
+        <h2 class="s-title" data-editable>첫 분석에는 <span class="hl">매뉴얼 파일 하나</span>만 첨부합니다</h2>
+        <p class="s-lead" data-editable>오늘 제공하는 자료는 한국관광공사 공식 활용매뉴얼 한 개입니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue"><span class="chip">제공 파일</span>
+            <div class="card-t" data-editable><code>한국관광공사_개방데이터_활용매뉴얼(국문)_v4.4.docx</code></div>
+            <p class="card-p" data-editable>기능 주소, 입력값, 응답 필드를 찾는 근거 문서입니다.</p>
+          </div>
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">01</span>
+              <div><b>받은 이름 그대로 둡니다</b>
+                <p>파일명을 바꾸지 않아야 AI 답변의 근거와 내 파일을 대조할 수 있습니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">02</span>
+              <div><b>Codex 입력창에 첨부합니다</b>
+                <p>다른 문서는 함께 넣지 않고 이 파일만 첨부합니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">03</span>
+              <div><b>첨부 표시를 확인하고 보냅니다</b>
+                <p>파일이 붙은 것을 본 뒤 다음 장의 프롬프트를 전송합니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">사전 시뮬레이션</div>
+        <h2 class="s-title" data-editable>AI에게 <span class="hl">분석과 추천을 한꺼번에</span> 시키지 않습니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="vflow">
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">먼저 이 매뉴얼의 구조와 사용할 수 있는 기능만 분석해 줘.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">기능 주소, 필수 입력값, 선택 입력값, 응답 필드로 나눠 정리하겠습니다.</div>
+            </div>
+          </div>
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">추천이나 코드는 아직 만들지 마.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">문서에서 확인되는 사실과 확인되지 않는 내용을 구분하겠습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">분석 초점</div>
+        <h2 class="s-title" data-editable>매뉴얼에서 <span class="hl">여섯 가지만</span> 찾습니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid3">
+          <div class="card"><span class="chip">01</span>
+            <div class="card-t">제공 정보</div>
+            <p class="card-p">어떤 관광 데이터를 받을 수 있는가</p>
+          </div>
+          <div class="card"><span class="chip">02</span>
+            <div class="card-t">기능 주소</div>
+            <p class="card-p">어떤 엔드포인트를 호출하는가</p>
+          </div>
+          <div class="card"><span class="chip">03</span>
+            <div class="card-t">필수·선택 입력</div>
+            <p class="card-p">꼭 넣는 값과 골라 쓰는 값</p>
+          </div>
+          <div class="card"><span class="chip">04</span>
+            <div class="card-t">응답 필드</div>
+            <p class="card-p">제목·주소·기간·이미지</p>
+          </div>
+          <div class="card"><span class="chip">05</span>
+            <div class="card-t">API 키 위치</div>
+            <p class="card-p">키가 들어가는 곳과 공개하면 안 되는 이유</p>
+          </div>
+          <div class="card"><span class="chip">06</span>
+            <div class="card-t">불확실성</div>
+            <p class="card-p">문서만으로 확인되지 않는 내용</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">진행 요령 · 돌발 대처</div>
+        <h2 class="s-title" data-editable>분석 중 막히면 <span class="hl">이렇게 대처</span>합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">01</span>
+              <div><b>매뉴얼을 못 읽었다고 하면</b>
+                <p>추측으로 답하게 두지 말고, <code>v4.4.docx</code> 파일이 입력창에 첨부됐는지 확인한 뒤 다시 요청합니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">02</span>
+              <div><b>파일을 만들거나 코드를 쓰려 하면</b>
+                <p>승인하지 않고 분석만 다시 요청합니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">03</span>
+              <div><b>인증키를 달라고 하면</b>
+                <p>키 값은 채팅에 넣지 않고, STEP 05에서 환경변수로만 등록합니다.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card card--blue"><span class="chip">다시 요청할 때</span>
+            <div class="card-t">"코드와 파일은 만들지 말고, 매뉴얼 근거로 분석만 다시 정리해 주세요."</div>
+            <p class="card-p">처음부터 새로 시작하지 않고 같은 대화에서 방향만 바로잡습니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">STEP 1 · 실습 프롬프트</div>
+        <h2 class="s-title" data-editable>공식 매뉴얼의 <span class="hl">기능과 규칙</span>을 분석합니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console prompt--compact" data-copy="첨부한 한국관광공사 개방데이터 활용매뉴얼 v4.4를 분석해 주세요.
+
+아직 웹앱을 추천하거나 코드를 만들지 마세요.
+
+다음 내용을 매뉴얼 근거에 따라 초보자가 이해하기 쉬운 말로 정리해 주세요.
+
+1. 이 API로 제공받을 수 있는 정보
+2. 사용할 수 있는 주요 기능 주소
+3. 각 기능의 필수 입력값과 선택 입력값
+4. 응답에서 화면에 사용할 수 있는 주요 필드
+5. API 키가 필요한 위치와 공개하면 안 되는 이유
+6. 매뉴얼만으로 확인할 수 없는 내용
+
+특히 searchFestival2, 지역코드, 행사 시작일·종료일,
+키워드 검색 기능이 서로 어떻게 다른지 구분해 주세요.
+
+추측하지 말고 매뉴얼의 기능명과 항목명을 근거로 설명해 주세요.
+코드는 만들지 마세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code prompt__code--cols3"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">분석 결과 · 기능</div>
+        <h2 class="s-title" data-editable>축제 검색은 <span class="hl"><code>searchFestival2</code></span>에서 시작합니다</h2>
+        <p class="s-lead" data-editable>키워드검색 기능도 따로 있지만, 오늘 앱은 행사 목록을 받은 뒤 제목·주소를 한 번 더 걸러냅니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue"><span class="chip">오늘 사용</span>
+            <div class="card-t"><code>searchFestival2</code></div>
+            <p class="card-p">행사 시작일·종료일과 법정동 시·도 코드로 축제 목록을 요청합니다.</p>
+          </div>
+          <div class="card"><span class="chip">매뉴얼의 별도 기능</span>
+            <div class="card-t"><code>searchKeyword2</code></div>
+            <p class="card-p">관광정보 전체를 글자로 찾는 별도 엔드포인트입니다. 오늘 기본 연결에는 섞지 않습니다.</p>
+          </div>
+        </div>
+        <div class="note"><span class="note-ic">설계</span>
+          <div>하나의 API가 모든 검색 조건을 직접 처리한다고 가정하지 않습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">실제 API 응답 구조</div>
+        <h2 class="s-title" data-editable>공공데이터는 <span class="hl">택배 상자 3겹</span>으로 포장되어 옵니다</h2>
+        <p class="s-lead" data-editable>header(운송장)로 배달 성공을 확인하고, body(상자 안 내용물)에서 축제 목록을 꺼냅니다.</p>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="grid2" style="align-items:stretch;gap:1.1rem">
+          <div class="card card--tint"
+            style="font-family:var(--f-mono);font-size:calc(1.18rem * 1.1);line-height:1.75;padding:1rem 1.2rem;display:flex;flex-direction:column;justify-content:center">
+            <div
+              style="font-family:var(--f);font-size:calc(1.22rem * 1.1);font-weight:800;color:var(--ink);margin-bottom:.5rem">
+              📦 공공데이터 실제 응답 형태</div>
+            <div><b style="color:var(--blue-strong)">response</b> {</div>
+            <div style="padding-left:1.2rem">📋 <b style="color:#047857">&quot;header&quot;</b>: {</div>
+            <div style="padding-left:2.4rem"><span style="color:#047857">&quot;resultCode&quot;: &quot;0000&quot;</span>
+              <span style="font-size:.85em;color:#047857">/* 성공 */</span>
+            </div>
+            <div style="padding-left:1.2rem">},</div>
+            <div style="padding-left:1.2rem">📦 <b style="color:var(--ink)">&quot;body&quot;</b>: {</div>
+            <div style="padding-left:2.4rem"><b style="color:var(--blue-strong)">&quot;items&quot;</b>: { <b
+                style="color:var(--blue-strong)">&quot;item&quot;: [ ... ]</b> },</div>
+            <div style="padding-left:2.4rem">&quot;totalCount&quot;: 1 <span
+                style="font-size:.85em;color:var(--faint)">/* 전체 개수 */</span></div>
+            <div style="padding-left:1.2rem">}</div>
+            <div>}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.75rem">
+            <div class="card card--blue"
+              style="flex:1;padding:.85rem 1.2rem;display:flex;flex-direction:column;justify-content:center;gap:.35rem">
+              <div><span class="chip" style="font-size:calc(.95rem * 1.1)">운송장 확인</span></div>
+              <div class="card-t" style="font-size:calc(1.32rem * 1.1);line-height:1.3">
+                <code>resultCode: &quot;0000&quot;</code> (정상 성공)
+              </div>
+              <p class="card-p" style="font-size:calc(1.18rem * 1.1);line-height:1.55">서버의 배달 성공 신호입니다. 0000이 아니라면 인증키
+                오류나 필수 입력 누락을 알리는 신호입니다.</p>
+            </div>
+            <div class="card card--tint"
+              style="flex:1;padding:.85rem 1.2rem;display:flex;flex-direction:column;justify-content:center;gap:.35rem">
+              <div><span class="chip" style="font-size:calc(.95rem * 1.1)">상자 속 내용물</span></div>
+              <div class="card-t" style="font-size:calc(1.32rem * 1.1);line-height:1.3"><code>body.items.item [ ]</code>
+                축제 배열</div>
+              <p class="card-p" style="font-size:calc(1.18rem * 1.1);line-height:1.55">축제명·기간·장소·이미지가 담긴 배열입니다. 첫 번째 축제는
+                <code>item[0]</code>, 배열 번호는 0부터 셉니다.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="note note--key" style="font-size:calc(1.12rem * 1.1)"><span class="note-ic">원리</span>
+          <div>공공데이터는 데이터를 바로 주지 않고, 항상 상태 확인증(header)과 실제 상자(body)로 포장해서 전달합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">요청값 구분</div>
+        <h2 class="s-title" data-editable>검색 조건마다 <span class="hl">처리하는 위치</span>가 다릅니다</h2>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>화면 입력</th>
+              <th>내 서버 요청</th>
+              <th>처리 위치</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>지역</td>
+              <td><code>lDongRegnCd</code></td>
+              <td>관광공사 API</td>
+            </tr>
+            <tr>
+              <td>시작일</td>
+              <td><code>startDate</code></td>
+              <td><code>eventStartDate</code>로 전달</td>
+            </tr>
+            <tr>
+              <td>종료일</td>
+              <td><code>endDate</code></td>
+              <td><code>eventEndDate</code>로 전달</td>
+            </tr>
+            <tr>
+              <td>키워드</td>
+              <td><code>keyword</code></td>
+              <td>받아온 축제의 제목·주소에서 필터</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note note--key"><span class="note-ic">형식</span>
+          <div>화면의 날짜는 2026-09-01처럼 보이지만 서버 요청에서는 20260901 형태로 바꿉니다.</div>
+        </div>
+        <div class="note"><span class="note-ic">MVP 한계</span>
+          <div>기본 예제는 첫 100건 안에서 키워드를 거릅니다. 전체 결과가 필요해질 때 페이지 처리를 추가합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">실제 데이터 분석</div>
+        <h2 class="s-title" data-editable>20여 개 필드 중 <span class="hl">화면에 필요한 5개만</span> 골라냅니다</h2>
+        <p class="s-lead" data-editable>실제 관광공사 축제(item) 데이터 1건에는 관리 번호, 좌표 등 수많은 정보가 들어 있습니다.</p>
+      </div>
+      <div class="s-body s-body--tight">
+        <div style="display:grid;grid-template-columns:500px 1fr;gap:1.2rem;align-items:stretch">
+          <div class="card"
+            style="border:1px dashed var(--hairline);padding:.85rem 1.25rem;border-radius:var(--r-card);display:flex;flex-direction:column;justify-content:center">
+            <div><span class="chip" style="background:#f1f5f9;color:#64748b;font-size:calc(.9rem * 1.1)">화면에서 제외</span>
+            </div>
+            <div class="card-t" style="color:var(--body);font-size:calc(1.22rem * 1.1);margin-top:.35rem">내부 관리용 필드들
+            </div>
+            <ul class="ul"
+              style="font-size:calc(1.05rem * 1.1);line-height:1.68;margin-top:.4rem;padding-left:1.1rem;white-space:nowrap">
+              <li><code>contentid</code>: 식별 번호</li>
+              <li><code>mapx</code>, <code>mapy</code>: 지도 좌표</li>
+              <li><code>modifiedtime</code>: 수정일시</li>
+              <li><code>cat1~cat3</code>: 분류 코드</li>
+              <li><code>cpyrhtDivCd</code>: 저작권 코드</li>
+            </ul>
+          </div>
+          <div class="card card--blue"
+            style="padding:.85rem 1.25rem;display:flex;flex-direction:column;justify-content:center">
+            <div><span class="chip" style="font-size:calc(.9rem * 1.1)">화면 카드 렌더링</span></div>
+            <div class="card-t" style="font-size:calc(1.26rem * 1.1);margin-top:.35rem">오늘 사용할 5대 핵심 필드</div>
+            <table class="tbl" style="margin-top:.4rem;font-size:calc(1.12rem * 1.1);width:100%">
+              <thead>
+                <tr>
+                  <th style="padding:.35rem .75rem;white-space:nowrap">원본 필드</th>
+                  <th style="padding:.35rem .75rem;white-space:nowrap">서버가 보내는 이름</th>
+                  <th style="padding:.35rem .75rem;white-space:nowrap">실제 데이터 예시</th>
+                  <th style="padding:.35rem .75rem;white-space:nowrap">화면 표시</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>title</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>title</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">도산 안창호의 날 기념행사</td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">축제명</td>
+                </tr>
+                <tr>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>eventstartdate</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>startDate</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">20261003</td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">시작일</td>
+                </tr>
+                <tr>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>eventenddate</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>endDate</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">20261005</td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">종료일</td>
+                </tr>
+                <tr>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>addr1</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>address</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">서울 강남구 도산대로 320</td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">개최 장소</td>
+                </tr>
+                <tr>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>firstimage</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap"><code>image</code></td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">https://…_image2_1.jpg</td>
+                  <td style="padding:.32rem .75rem;white-space:nowrap">포스터 사진</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="note note--key" style="font-size:calc(1.1rem * 1.1);padding:.55rem .85rem"><span class="note-ic">서버
+            역할</span>
+          <div>서버가 5개만 골라 <b>서버가 보내는 이름</b>으로 바꿔 보냅니다. 배포 후 JSON에서도 이 이름으로 보입니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">화면 상태</div>
+        <h2 class="s-title" data-editable>결과 없음은 <span class="hl">오류가 아닙니다</span></h2>
+        <p class="s-lead" data-editable>요청이 성공했는지와 목록이 비어 있는지를 따로 판단합니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="grid3">
+          <div class="card"><span class="status ok">정상</span>
+            <div class="card-t">요청 성공 + 결과 있음</div>
+            <p class="card-p">축제 카드 목록을 표시합니다.</p>
+          </div>
+          <div class="card"><span class="status blue">결과 없음</span>
+            <div class="card-t">요청 성공 + 빈 목록</div>
+            <p class="card-p">조건을 바꿔 보도록 안내합니다.</p>
+          </div>
+          <div class="card card--warn"><span class="status warn">오류</span>
+            <div class="card-t">키·입력값·한도·장애</div>
+            <p class="card-p">안전한 문구와 오류 코드로 다음 확인 지점을 찾습니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">STEP 02 · 만들 수 있는 웹앱 추천</div>
+        <h1 class="s-title" data-editable>분석한 기능을 바탕으로<br><span class="hl">만들 수 있는 화면</span>을 비교합니다</h1>
+        <p class="s-lead" data-editable>추천은 가능성을 넓히는 단계이고, 오늘의 제작 목표는 축제 검색으로 다시 좁힙니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">사전 시뮬레이션</div>
+        <h2 class="s-title" data-editable>추천은 <span class="hl">입력·출력·난이도</span>로 비교합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="vflow">
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">이 기능으로 초보자가 만들기 좋은 웹앱을 추천해 줘.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">사용자 입력, 화면 결과, 사용할 API, 구현 난이도를 함께 비교하겠습니다.</div>
+            </div>
+          </div>
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">코드는 아직 만들지 마.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">아이디어를 비교한 뒤 선택을 기다리겠습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">STEP 2 · 실습 프롬프트</div>
+        <h2 class="s-title" data-editable>매뉴얼 안에서 가능한 <span class="hl">웹앱 아이디어</span>를 추천받습니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console" data-copy="방금 분석한 매뉴얼을 바탕으로 비개발자가 단일 화면으로 만들기 좋은 웹앱 아이디어를 3~5개 추천해 주세요.
+
+각 아이디어마다 다음 내용을 알려주세요.
+
+- 사용자가 입력하는 것
+- 화면에 보여주는 것
+- 사용하는 API 기능
+- 초보자가 만들 때의 난이도와 주의점
+
+아직 코드는 만들지 마세요.
+추천을 확인한 뒤 제가 만들 웹앱을 선택하겠습니다.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">추천 결과 검토</div>
+        <h2 class="s-title" data-editable>보기보다 중요한 것은 <span class="hl">실제로 만들 수 있는가</span>입니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">01</span>
+              <div><b>매뉴얼 기능과 연결되는가</b>
+                <p>없는 API를 있다고 가정하지 않습니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">02</span>
+              <div><b>입력과 출력이 분명한가</b>
+                <p>무엇을 검색하고 무엇을 보여줄지 말할 수 있어야 합니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">03</span>
+              <div><b>한 화면으로 완주 가능한가</b>
+                <p>지도·로그인·DB 없이 핵심 흐름을 확인합니다.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card card--blue"><span class="chip">오늘의 선택</span>
+            <div class="card-t">지역·기간·키워드 축제 검색</div>
+            <p class="card-p">사용자가 조건을 입력하면 실제 축제 데이터가 카드 목록으로 나타나는 웹앱입니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">선택 확정 프롬프트</div>
+        <h2 class="s-title" data-editable>추천을 본 뒤 <span class="hl">오늘의 목표</span>를 고정합니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console" data-copy="지역·기간·키워드로 찾는 축제 검색 웹앱을 만들겠습니다.
+
+이 목표에 필요한 입력값, 출력값, 화면 상태와 보안 구조만 정리해 주세요.
+
+[입력]
+- 지역
+- 시작일
+- 종료일
+- 키워드
+
+[출력]
+- 축제명, 주소, 기간, 대표 이미지 카드 목록
+
+아직 파일을 만들거나 수정하지 마세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code" style="font-size:calc(1.15rem * 1.1);line-height:1.45;padding:.9rem 1.5rem"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">제작 범위</div>
+        <h2 class="s-title" data-editable>검색 흐름 하나를 <span class="hl">끝까지 작동</span>시킵니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue">
+            <div class="card-t">이번에 만들 것</div>
+            <ul class="ul">
+              <li>지역·기간·키워드 입력</li>
+              <li>샘플·실제 API 검색</li>
+              <li>카드 목록과 상태 안내</li>
+              <li>서버 함수와 환경변수</li>
+            </ul>
+          </div>
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">×</span>
+              <div><b>이번에 만들지 않을 것</b>
+                <p>지도·로그인·즐겨찾기·DB·상세 페이지·무한 스크롤·앱 내부 AI 추천</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">STEP 3-A · 샘플 데이터로 화면 제작</div>
+        <h1 class="s-title" data-editable>실제 데이터보다 먼저<br><span class="hl">샘플로 화면을 완성</span>합니다</h1>
+        <p class="s-lead" data-editable>화면이 제대로 동작하는지 먼저 확인하고, 실제 공공데이터는 다음 단계에서 같은 카드에 연결합니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">화면 구조</div>
+        <h2 class="s-title" data-editable><span class="hl">입력 → 상태 → 카드 목록</span>이 한눈에 보여야 합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">검색 조건</div>
+            <div class="flow-text">지역·시작일·종료일·키워드</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">검색 실행</div>
+            <div class="flow-text">샘플 데이터로 먼저 확인</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">상태 안내</div>
+            <div class="flow-text">검색 전·중·빈 결과·오류</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">카드 목록</div>
+            <div class="flow-text">이름·주소·기간·이미지</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">기간 검색</div>
+        <h2 class="s-title" data-editable>선택한 기간과 <span class="hl">겹치는 축제</span>를 찾습니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="card card--blue">
+          <div class="card-t">검색 기간 · 9월 10일 ~ 9월 20일</div>
+          <p class="card-p">축제가 9월 5일에 시작해 9월 15일에 끝나도 검색 기간과 겹치므로 결과에 포함합니다.</p>
+        </div>
+        <div class="grid3">
+          <div class="card"><span class="status ok">포함</span>
+            <div class="card-t">09.05 ~ 09.15</div>
+            <p class="card-p">기간 일부가 겹침</p>
+          </div>
+          <div class="card"><span class="status ok">포함</span>
+            <div class="card-t">09.12 ~ 09.18</div>
+            <p class="card-p">기간 안에 있음</p>
+          </div>
+          <div class="card card--warn"><span class="status warn">제외</span>
+            <div class="card-t">09.21 ~ 09.25</div>
+            <p class="card-p">검색 기간 뒤에 시작</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">사전 시뮬레이션</div>
+        <h2 class="s-title" data-editable><span class="hl">화면 먼저</span>, 실제 연결은 다음 단계에서 합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="vflow">
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">화면은 index.html 한 파일로 만들고, 제공받은 샘플 데이터로 먼저 확인하고 싶어.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">mock_festivals.json의 다섯 필드로 입력, 상태, 카드 목록을 만들겠습니다.</div>
+            </div>
+          </div>
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">서버 함수나 실제 API 연결은 아직 만들지 마.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">이번에는 index.html만 만들고 실제 연결은 다음 단계로 남기겠습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">사용할 실습자료</div>
+        <h2 class="s-title" data-editable>샘플은 <span class="hl">제공한 파일</span>을 그대로 씁니다</h2>
+        <p class="s-lead" data-editable>한국관광공사 실제 응답에서 서울·부산·경기·강원 축제 27건을 화면용 다섯 필드로 정리한 파일입니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue"><span class="chip">제공 파일</span>
+            <div class="card-t" data-editable><code>mock_festivals.json</code></div>
+            <p class="card-p" data-editable>축제명·주소·시작일·종료일·이미지와 지역 코드가 들어 있습니다. 실제 API 결과와 같은 구조라 같은 카드 화면을 씁니다.</p>
+          </div>
+          <div class="open-list">
+            <div class="open-item"><span class="open-num">01</span>
+              <div><b>프로젝트 폴더 맨 위에 넣습니다</b>
+                <p><code>index.html</code>이 만들어질 위치입니다. Codex가 폴더의 파일을 직접 읽으므로 채팅에 첨부하지 않습니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">02</span>
+              <div><b>이름과 내용을 바꾸지 않습니다</b>
+                <p>프롬프트가 이 파일명을 가리키고, 테스트 결과도 이 데이터를 기준으로 대조합니다.</p>
+              </div>
+            </div>
+            <div class="open-item"><span class="open-num">03</span>
+              <div><b>화면 안에도 같은 데이터가 들어갑니다</b>
+                <p>더블클릭으로 연 HTML은 보안 정책상 옆 파일을 못 읽기 때문에 <code>index.html</code> 안에 한 번 더 넣습니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">STEP 3-A · 제작 프롬프트</div>
+        <h2 class="s-title" data-editable>샘플 데이터로 <span class="hl">화면을 먼저 완성</span>합니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console prompt--compact" data-copy="지금까지 분석하고 합의한 내용을 바탕으로 축제 검색 웹앱의 화면을 먼저 만들어 주세요.
+
+[화면]
+- 화면 코드는 index.html 한 파일로 작성
+- 지역, 시작일, 종료일, 키워드 검색 입력
+- 검색 결과는 카드 목록으로 표시
+- 카드에는 축제명, 주소, 기간, 대표 이미지 표시
+- 검색 전, 결과 없음 상태 구분
+- 모바일에서도 가로 스크롤 없이 사용 가능
+
+[샘플 데이터]
+- 프로젝트 폴더의 mock_festivals.json을 샘플 데이터로 사용
+- 더블클릭으로 열어도 동작하도록 index.html 안에 같은 데이터를 넣기
+- 지역은 lDongRegnCd, 기간은 선택한 기간과 겹치는 축제, 키워드는 제목과 주소로 필터링
+- 카드는 title, address, startDate, endDate, image 다섯 필드로 그리기
+
+[이번에 만들지 않음]
+- 실제 API 연결과 서버 함수(api/festivals.js)
+- 지도, 로그인, 즐겨찾기, 데이터베이스, 상세 페이지
+- 새 패키지 추가
+
+먼저 생성할 파일과 구현 순서를 설명하고
+제 검토를 기다려 주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code prompt__code--cols3"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">계획 검토</div>
+        <h2 class="s-title" data-editable>파일을 만들기 전에 <span class="hl">네 가지</span>를 승인합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">검색 구조</div>
+            <div class="flow-text">지역·기간·키워드 누락 없음</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">파일 규격</div>
+            <div class="flow-text">index.html 한 파일만 생성</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">샘플 데이터</div>
+            <div class="flow-text">mock_festivals.json 사용, 새로 지어내지 않음</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">제외 범위</div>
+            <div class="flow-text">서버 함수·지도·DB 추가 없음</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">승인 지점</div>
+        <h2 class="s-title" data-editable>계획이 맞으면 <span class="hl">한 문장으로 실행</span>합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="prompt prompt--console" data-copy="계획을 확인했습니다. 그 계획대로 구현해 주세요.
+
+완료 후에는 변경한 파일, 로컬에서 확인할 항목,
+배포 후 확인할 항목을 나눠서 알려주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code"></div>
+        </div>
+        <div class="note note--key"><span class="note-ic">멈춤</span>
+          <div>계획에 검색 조건이 빠졌거나 서버 함수가 들어 있다면 승인하지 말고 그 부분만 다시 요청합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">로컬 스모크 테스트</div>
+        <h2 class="s-title" data-editable>배포 전에 <span class="hl">샘플 데이터로 화면</span>을 검증합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">파일 실체</div>
+            <div class="flow-text">index.html 확인</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">더블클릭</div>
+            <div class="flow-text">샘플 데이터 보기 실행</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">조건 조합</div>
+            <div class="flow-text">서울 11개 → 야행 1개 → 대전 결과 없음</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">상태·모바일</div>
+            <div class="flow-text">빈 결과·오류·가로 스크롤</div>
+          </div>
+        </div>
+        <div class="note"><span class="note-ic">정상</span>
+          <div>이 화면이 통과하면 카드와 필터는 검증된 것입니다. 다음 단계에서는 데이터 출처만 실제 API로 바꿉니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">STEP 3-B · 실제 API 연결</div>
+        <h1 class="s-title" data-editable>화면에 키 값을 넣는 순간<br><span class="hl">공개된 것과 같습니다</span></h1>
+        <p class="s-lead" data-editable>샘플로 확인한 화면은 그대로 두고, 데이터를 가져오는 곳만 내 서버 함수로 바꿉니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">안전한 요청 구조</div>
+        <h2 class="s-title" data-editable>브라우저는 <span class="hl">내 서버 함수만</span> 호출합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">index.html</div>
+            <div class="flow-text">검색 조건 전송</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">/api/festivals</div>
+            <div class="flow-text">입력값 검증</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">환경변수</div>
+            <div class="flow-text">서버에서 키 읽기</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">관광공사 API</div>
+            <div class="flow-text">필요한 결과 반환</div>
+          </div>
+        </div>
+        <div class="note note--key"><span class="note-ic">정확한 표현</span>
+          <div>api/festivals.js에도 키 값은 쓰지 않습니다. <code>process.env.DATA_GO_KR_API_KEY</code>라는 환경변수 이름만 사용합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">보안 원칙</div>
+        <h2 class="s-title" data-editable>안전은 <span class="hl">코드·Git·응답·로그</span>를 함께 봅니다</h2>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>노출 경로</th>
+              <th>막는 방법</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>index.html</code></td>
+              <td>키 값과 외부 API 전체 주소를 넣지 않는다.</td>
+            </tr>
+            <tr>
+              <td>GitHub</td>
+              <td><code>.env</code>, <code>.env.local</code>, <code>.vercel</code>을 추적하지 않는다.</td>
+            </tr>
+            <tr>
+              <td>브라우저 응답</td>
+              <td>화면에 필요한 다섯 필드만 반환한다.</td>
+            </tr>
+            <tr>
+              <td>Function 로그</td>
+              <td>키 값이나 키가 포함된 전체 요청 주소를 출력하지 않는다.</td>
+            </tr>
+            <tr>
+              <td>이미 공개된 키</td>
+              <td>코드에서 지운 뒤 키를 폐기·재발급한다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">사전 시뮬레이션</div>
+        <h2 class="s-title" data-editable>화면은 그대로, <span class="hl">데이터 출처만</span> 바꿉니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="vflow">
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">샘플로 확인한 카드 화면은 그대로 두고 실제 데이터만 연결하고 싶어.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">api/festivals.js를 만들고 index.html에는 실제 API 검색 버튼만 추가하겠습니다.</div>
+            </div>
+          </div>
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">실제 키는 HTML에도 서버 코드에도 적지 마.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">서버 함수가 DATA_GO_KR_API_KEY 환경변수 이름만 읽고, 샘플과 같은 다섯 필드로 돌려주겠습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">STEP 3-B · 연결 프롬프트</div>
+        <h2 class="s-title" data-editable>같은 카드 화면에 <span class="hl">실제 API를 연결</span>합니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console prompt--compact" data-copy="샘플로 확인한 index.html 화면에 실제 공공데이터를 연결해 주세요.
+
+[서버 함수]
+- api/festivals.js 서버 함수 생성
+- DATA_GO_KR_API_KEY는 서버 함수에서 환경변수로만 읽기
+- 포털에서 복사한 인증키(%가 섞인 형태)를 환경변수에 그대로 넣어도 동작하게 처리
+- 지역과 기간은 searchFestival2 요청에 반영
+- 키워드는 받아온 축제의 제목과 주소에서 필터링
+- 응답은 샘플과 같은 title, address, startDate, endDate, image 다섯 필드로 정리
+
+[화면 연결]
+- index.html에 실제 API 검색 버튼을 추가하고 /api/festivals만 호출
+- 기존 샘플 검색과 카드 화면은 그대로 유지
+- 불러오는 중, 오류 상태 추가
+- index.html에는 실제 키와 외부 API 전체 주소를 넣지 않기
+
+[이번에 만들지 않음]
+- 지도, 로그인, 즐겨찾기, 데이터베이스, 상세 페이지
+- 새 패키지 추가
+
+먼저 생성하거나 수정할 파일과 구현 순서를 설명하고
+제 검토를 기다려 주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code prompt__code--cols3"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">계획 검토</div>
+        <h2 class="s-title" data-editable>연결하기 전에 <span class="hl">네 가지</span>를 승인합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">보안 경계</div>
+            <div class="flow-text">키 값은 환경변수에만</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">파일 규격</div>
+            <div class="flow-text">api/festivals.js 추가, index.html은 버튼·상태만 수정</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">응답 구조</div>
+            <div class="flow-text">샘플과 같은 다섯 필드</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">제외 범위</div>
+            <div class="flow-text">지도·로그인·DB 추가 없음</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">승인 지점</div>
+        <h2 class="s-title" data-editable>계획이 맞으면 <span class="hl">한 문장으로 실행</span>합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="prompt prompt--console" data-copy="계획을 확인했습니다. 그 계획대로 구현해 주세요.
+
+완료 후에는 변경한 파일, 로컬에서 확인할 항목,
+배포 후 확인할 항목을 나눠서 알려주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code"></div>
+        </div>
+        <div class="note note--key"><span class="note-ic">멈춤</span>
+          <div>계획이 기존 샘플 검색이나 카드 화면을 바꾸려 하면 승인하지 말고 그 부분만 다시 요청합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">실제 연결 점검</div>
+        <h2 class="s-title" data-editable>생성된 코드가 <span class="hl">합의한 규격</span>을 지키는지 봅니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue">
+            <div class="card-t">있어야 하는 것</div>
+            <ul class="ul">
+              <li><code>process.env.DATA_GO_KR_API_KEY</code></li>
+              <li>지역·날짜 형식 검증</li>
+              <li>키워드 길이 제한과 필터</li>
+              <li>필요한 필드만 반환</li>
+            </ul>
+          </div>
+          <div class="card card--warn">
+            <div class="card-t">없어야 하는 것</div>
+            <ul class="ul">
+              <li>실제 API 키 문자열</li>
+              <li>브라우저의 <code>serviceKey</code> 조립</li>
+              <li>키가 포함된 전체 URL 로그</li>
+              <li>요청하지 않은 새 패키지</li>
+            </ul>
+          </div>
+        </div>
+        <div class="note"><span class="note-ic">정상</span>
+          <div>로컬 더블클릭에서는 서버 함수가 실행되지 않습니다. 실제 검색 결과는 STEP 05 Vercel 배포 후 확인합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">STEP 04 · GitHub에 push</div>
+        <h1 class="s-title" data-editable>코드에 키가 없음을 확인한 뒤<br><span class="hl">변경 기록을 저장합니다</span></h1>
+        <p class="s-lead" data-editable>보안 사전 점검 → 커밋 → 현재 원격 저장소와 브랜치에 push 순서입니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">GitHub 반영 전</div>
+        <h2 class="s-title" data-editable>push 전에 <span class="hl">키와 추적 파일</span>을 검사합니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console" data-copy="아직 push하지 말고 보안 사전 점검만 해주세요.
+
+1. index.html과 api/festivals.js에 실제 API 키가 없는지 확인
+2. serviceKey가 환경변수에서만 오는지 확인
+3. .env, .env.local, .vercel이 Git 추적 대상이 아닌지 확인
+4. 지역·기간·키워드 검색 구현이 포함됐는지 확인
+5. 변경 파일 목록과 커밋 예정 내용을 보여주기
+
+실제 키처럼 보이는 문자열을 발견하면 값을 출력하지 말고
+파일명과 줄 위치만 알려주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code prompt__code--cols"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">커밋과 push</div>
+        <h2 class="s-title" data-editable>검사를 통과한 변경만 <span class="hl">GitHub에 반영</span>합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="prompt prompt--console" data-copy="보안 점검 결과를 확인했습니다.
+
+확인한 변경만 커밋하고 현재 GitHub 원격 저장소의 현재 브랜치에 push해 주세요.
+
+커밋 메시지는 다음을 사용하세요.
+feat: 지역 기간 키워드 축제 검색 기능 추가
+
+push가 실패하면 인증키와 개인정보만 가리고,
+현재 브랜치와 origin 주소를 확인한 뒤 최소 해결 절차를 알려주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">GitHub 확인</div>
+        <h2 class="s-title" data-editable>AI의 성공 문구가 아니라 <span class="hl">저장소 화면</span>을 확인합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">저장소</div>
+            <div class="flow-text">올바른 GitHub 프로젝트</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">브랜치</div>
+            <div class="flow-text">Vercel 연결 브랜치</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">파일</div>
+            <div class="flow-text">index.html·api/festivals.js</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">비밀정보</div>
+            <div class="flow-text">실제 키·.env 없음</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">STEP 05 · Vercel 배포</div>
+        <h1 class="s-title" data-editable>환경변수에 키를 등록하고<br><span class="hl">새 배포에서 확인합니다</span></h1>
+        <p class="s-lead" data-editable>GitHub에 올라간 코드와 Vercel의 비밀값이 배포 시점에 만나 실제 API가 작동합니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">Vercel 환경변수</div>
+        <h2 class="s-title" data-editable>키 값은 <span class="hl"><code>DATA_GO_KR_API_KEY</code></span>에 등록합니다</h2>
+        <p class="s-lead" data-editable>키 값을 AI 채팅·화면 공유·공개 문서에 붙여 넣지 않습니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="vflow">
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">1</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">Project</div>
+              <div class="vtext">GitHub에 연결한 Vercel 프로젝트를 선택합니다.</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">2</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">Environment Variables</div>
+              <div class="vtext">Name을 <code>DATA_GO_KR_API_KEY</code>로 정확히 입력합니다.</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">3</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">Value와 환경 선택</div>
+              <div class="vtext">키 값을 붙여 넣고 Production을 선택합니다. Preview도 테스트하면 함께 선택합니다.</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">4</div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">Save</div>
+              <div class="vtext">저장한 값은 이전 배포가 아니라 다음 새 배포부터 적용됩니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">새 배포</div>
+        <h2 class="s-title" data-editable>환경변수 저장 뒤에는 <span class="hl">Redeploy</span>가 필요합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue">
+            <div class="card-t">확인 순서</div>
+            <ul class="ul">
+              <li>Deployments에서 최근 Production 확인</li>
+              <li>환경변수 저장 뒤 새 배포 실행</li>
+              <li>상태가 Ready가 될 때까지 확인</li>
+              <li>Production 주소로 접속</li>
+            </ul>
+          </div>
+          <div class="card card--warn">
+            <div class="card-t">실패하면</div>
+            <ul class="ul">
+              <li>Build 또는 Function 로그의 첫 오류 확인</li>
+              <li>키 값이 보이면 화면 공유 중단</li>
+              <li>노출된 키는 폐기·재발급</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">두 API 주소의 역할</div>
+        <h2 class="s-title" data-editable>수강생은 <span class="hl">내 서버 주소</span>를 열어 JSON을 확인합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card">
+            <span class="chip">서버 함수만 호출</span>
+            <div class="card-t">공공데이터 원본 엔드포인트</div>
+            <p class="card-p" style="font-family:var(--f-mono);font-size:calc(.76rem * 1.1);word-break:break-all">
+              https://apis.data.go.kr/B551011/KorService2/searchFestival2</p>
+            <p class="card-p">인증키가 필요하므로 브라우저에서 직접 조립하지 않습니다.</p>
+          </div>
+          <div class="card card--blue">
+            <span class="chip">브라우저에서 열기</span>
+            <div class="card-t">내 Vercel 서버 확인 주소</div>
+            <p class="card-p"
+              style="font-family:var(--f-mono);font-size:calc(.76rem * 1.1);color:var(--blue-strong);word-break:break-all">
+              https://&lt;내-프로젝트&gt;.vercel.app/api/festivals?lDongRegnCd=11&amp;startDate=20260101&amp;endDate=20261231
+            </p>
+            <p class="card-p">내 배포 주소로 바꾸면 키를 드러내지 않고 실제 응답을 볼 수 있습니다.</p>
+          </div>
+        </div>
+        <div class="note note--key"><span class="note-ic">보안</span>
+          <div><code>serviceKey</code>가 들어간 전체 주소는 슬라이드·채팅·화면 공유에 표시하지 않습니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">미니 실습 · 실제 JSON 관찰</div>
+        <h2 class="s-title" data-editable>첫 세 건을 읽고 <span class="hl">지역 코드 하나</span>를 바꿔 봅니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--5">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">주소 바꾸기</div>
+            <div class="flow-text">내 Vercel 도메인 입력</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">정상 확인</div>
+            <div class="flow-text"><code>result: success</code></div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">배열 찾기</div>
+            <div class="flow-text"><code>items [ ]</code></div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">3건 읽기</div>
+            <div class="flow-text">제목·주소·기간</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">05</div>
+            <div class="flow-title">조건 변경</div>
+            <div class="flow-text"><code>11</code> → <code>26</code></div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="card card--blue">
+            <div class="card-t">눈으로 찾을 값</div>
+            <ul class="ul">
+              <li><code>items[0].title</code>과 <code>address</code></li>
+              <li><code>items[1]</code>의 시작일·종료일</li>
+              <li><code>items[2]</code>의 이미지 주소 유무</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-t">한 번 더 관찰</div>
+            <ul class="ul">
+              <li>주소의 <code>lDongRegnCd=11</code>을 <code>26</code>으로 변경</li>
+              <li>새로고침 후 첫 세 건 비교</li>
+              <li>데이터는 호출 시점에 따라 달라질 수 있음</li>
+            </ul>
+          </div>
+        </div>
+        <div class="note"><span class="note-ic">지역 코드</span>
+          <div><code>11</code>은 서울, <code>26</code>은 부산입니다. 결과가 비어 있으면 기간을 넓히거나 다른 지역으로 바꿉니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">최종 웹앱 테스트</div>
+        <h2 class="s-title" data-editable>네 가지 입력과 <span class="hl">보안 경계</span>를 함께 검사합니다</h2>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>테스트</th>
+              <th>기대 결과</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>서울·기간·불꽃</td>
+              <td>조건에 맞는 카드 또는 정상적인 빈 결과</td>
+            </tr>
+            <tr>
+              <td>다른 지역</td>
+              <td>지역에 따라 목록이 달라짐</td>
+            </tr>
+            <tr>
+              <td>시작일이 종료일보다 늦음</td>
+              <td>날짜를 확인하라는 안전한 오류</td>
+            </tr>
+            <tr>
+              <td>결과 없는 키워드</td>
+              <td>오류가 아니라 결과 없음 안내</td>
+            </tr>
+            <tr>
+              <td>모바일 폭</td>
+              <td>가로 스크롤 없이 입력과 카드 사용</td>
+            </tr>
+            <tr>
+              <td>페이지 소스·Network</td>
+              <td>실제 API 키와 외부 전체 URL이 보이지 않음</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">오류 코드</div>
+        <h2 class="s-title" data-editable>오류 코드는 <span class="hl">다음 확인 지점</span>을 알려줍니다</h2>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>코드</th>
+              <th>뜻</th>
+              <th>다음 확인</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>INVALID_REGION</code></td>
+              <td>지원하지 않는 지역</td>
+              <td>지역 선택값</td>
+            </tr>
+            <tr>
+              <td><code>INVALID_DATE_RANGE</code></td>
+              <td>날짜 형식·순서 오류</td>
+              <td>시작일과 종료일</td>
+            </tr>
+            <tr>
+              <td><code>MISSING_API_KEY</code></td>
+              <td>환경변수 누락</td>
+              <td>이름·Production·재배포</td>
+            </tr>
+            <tr>
+              <td><code>UPSTREAM_AUTH_ERROR</code></td>
+              <td>외부 API 인증 문제</td>
+              <td>활용신청과 키 종류</td>
+            </tr>
+            <tr>
+              <td><code>UPSTREAM_RATE_LIMIT</code></td>
+              <td>호출량 제한</td>
+              <td>반복 호출 중지 후 재시도</td>
+            </tr>
+            <tr>
+              <td><code>UPSTREAM_RESPONSE_ERROR</code></td>
+              <td>외부 응답 문제</td>
+              <td>Function 로그·기관 공지</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">인증키가 준비되지 않았다면</div>
+        <h2 class="s-title" data-editable>실제 연동을 추측하지 않고 <span class="hl">샘플 모드로 완주</span>합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--blue"><span class="chip">오늘 확인</span>
+            <div class="card-t">샘플 데이터 경로</div>
+            <p class="card-p">지역·기간·키워드, 카드, 빈 결과, 오류 화면을 검증합니다.</p>
+          </div>
+          <div class="card"><span class="chip">다음 확인</span>
+            <div class="card-t">실제 API 연동 대기</div>
+            <p class="card-p">키가 활성화되면 Vercel 환경변수 등록 → 새 배포 → JSON 확인을 진행합니다.</p>
+          </div>
+        </div>
+        <div class="note"><span class="note-ic">기록</span>
+          <div>실제 데이터를 확인하지 못했다면 완료라고 쓰지 않고, 확인하지 못한 이유와 다음 절차를 남깁니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">STEP 06 · 자유 수정과 재배포</div>
+        <h1 class="s-title" data-editable>작동하는 기준점을 지키며<br><span class="hl">원하는 한 가지를 개선합니다</span></h1>
+        <p class="s-lead" data-editable>한 번에 한 부분만 바꾸고, 같은 검색·보안 테스트를 다시 실행합니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">수정 아이디어</div>
+        <h2 class="s-title" data-editable>다양한 예시를 참고해 <span class="hl">내가 바꿀 한 가지</span>를 고릅니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="grid3">
+          <div class="card"><span class="chip">화면</span>
+            <div class="card-t">색·간격·카드 모양</div>
+            <p class="card-p">검색 기능은 유지하고 보이는 방식을 조정</p>
+          </div>
+          <div class="card"><span class="chip">정보</span>
+            <div class="card-t">결과 개수·지역명</div>
+            <p class="card-p">현재 검색 조건을 더 분명하게 표시</p>
+          </div>
+          <div class="card"><span class="chip">정렬</span>
+            <div class="card-t">날짜순 정렬</div>
+            <p class="card-p">받아온 카드의 표시 순서 조정</p>
+          </div>
+          <div class="card"><span class="chip">사용성</span>
+            <div class="card-t">초기화 버튼</div>
+            <p class="card-p">입력값과 결과를 처음 상태로 되돌림</p>
+          </div>
+          <div class="card"><span class="chip">문구</span>
+            <div class="card-t">빈 결과 안내</div>
+            <p class="card-p">다음 행동이 보이도록 안내 개선</p>
+          </div>
+          <div class="card"><span class="chip">접근성</span>
+            <div class="card-t">키보드·레이블</div>
+            <p class="card-p">버튼과 입력의 사용 흐름 점검</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">사전 시뮬레이션</div>
+        <h2 class="s-title" data-editable>자유 수정에도 <span class="hl">보호할 기준</span>이 있습니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="vflow">
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">카드를 날짜순으로 보여주고 싶어. 먼저 계획만 알려줘.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">기존 검색과 서버 구조는 유지하고, 화면 표시 직전에 정렬만 추가하겠습니다.</div>
+            </div>
+          </div>
+          <div class="chat-row">
+            <div class="chat-content">
+              <div class="bubble-who">나</div>
+              <div class="bubble bubble--me">지역·기간·키워드와 API 키 경계가 그대로인지도 확인해 줘.</div>
+            </div>
+          </div>
+          <div class="chat-row chat-row--ai">
+            <div class="chat-content">
+              <div class="bubble-who">AI</div>
+              <div class="bubble bubble--ai">변경 범위와 회귀 테스트를 함께 제시하겠습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">STEP 6 · 수정 프롬프트</div>
+        <h2 class="s-title" data-editable>바꾸고 싶은 부분을 <span class="hl">한 가지씩</span> 요청합니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console prompt--compact" data-copy="현재 축제 검색 웹앱에서 다음 부분을 수정하고 싶습니다.
+
+[수정하고 싶은 내용]
+- 여기에 원하는 변경을 적겠습니다.
+
+먼저 현재 파일을 확인하고 최소 변경 계획만 보여주세요.
+
+다음 조건은 유지해야 합니다.
+- 지역·기간·키워드 검색이 계속 작동
+- index.html에 API 키를 넣지 않음
+- DATA_GO_KR_API_KEY는 서버 함수에서만 사용
+- 기존 결과 카드와 오류 상태를 깨뜨리지 않음
+- 새 라이브러리는 추가하지 않음
+
+승인 후 한 번에 한 가지 변경만 적용하고,
+완료 후 다시 확인할 테스트 항목을 알려주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code prompt__code--cols"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">인간 승인 기준</div>
+        <h2 class="s-title" data-editable>자유 수정은 <span class="hl">기존 기능을 지키는 범위</span>에서 승인합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">01</div>
+            <div class="flow-title">한 가지 목표</div>
+            <div class="flow-text">요청한 변경만 다룸</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-title">검색 유지</div>
+            <div class="flow-text">지역·기간·키워드 보존</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-title">보안 유지</div>
+            <div class="flow-text">키 값 경계 보존</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-title">되돌릴 수 있음</div>
+            <div class="flow-text">작은 diff와 테스트</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">수정 후 재검증</div>
+        <h2 class="s-title" data-editable>로컬 확인부터 <span class="hl">두 번째 배포</span>까지 닫습니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="vflow">
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">1</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">로컬 샘플 테스트</div>
+              <div class="vtext">수정 기능과 지역·기간·키워드를 함께 확인합니다.</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">2</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">보안 재검사</div>
+              <div class="vtext">실제 키와 환경파일이 Git 추적 대상이 아닌지 다시 봅니다.</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">3</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">커밋과 push</div>
+              <div class="vtext">수정 이유가 드러나는 짧은 메시지로 저장합니다.</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">4</div>
+            </div>
+            <div class="vcard">
+              <div class="vlabel">Vercel 재배포 확인</div>
+              <div class="vtext">새 배포가 Ready인지 보고 실제 주소에서 다시 테스트합니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="s-head">
+        <div class="s-meta">마무리 · 기록과 회고</div>
+        <h1 class="s-title" data-editable>오늘의 대화를<br><span class="hl">다음 작업의 기준</span>으로 남깁니다</h1>
+        <p class="s-lead" data-editable>학습기록은 STEP이 아니라 여섯 단계를 마친 뒤 남기는 완료 기록입니다.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">학습기록 자동화</div>
+        <h2 class="s-title" data-editable><span class="hl"><code>docs/6일차_학습기록.md</code></span>를 AI에게 작성시킵니다</h2>
+      </div>
+      <div class="s-body s-body--tight">
+        <div class="prompt prompt--console prompt--compact" data-copy="오늘 나눈 대화와 작업 결과를 바탕으로 docs/6일차_학습기록.md를 만들어 주세요.
+
+[진행 과정]
+- API 매뉴얼 분석
+- 웹앱 아이디어 추천과 축제 검색 선택
+- 지역·기간·키워드 검색 웹앱 제작
+- GitHub push
+- Vercel 환경변수 등록과 배포 검증
+- 자유 수정과 재배포
+
+[결과 및 주요 판단]
+- 최종 결과물과 배포 주소
+- 제가 직접 확인하거나 바로잡은 판단
+- API 키가 공개되지 않도록 확인한 항목
+- 실제 API를 확인하지 못했다면 그 이유와 다음 절차
+
+[배운 점 / 인사이트]
+- 공식 매뉴얼 근거를 확인한 이유
+- 단일 HTML 화면과 서버 함수를 분리한 이유
+- 계획 승인과 재검증이 필요한 이유
+
+[다음 실습에 적용할 나만의 원칙]
+- 다음에도 지킬 한 줄 지휘 원칙
+
+초보자가 다시 읽기 쉬운 마크다운으로 작성하고 파일로 저장해 주세요.">
+          <div class="prompt__bar">
+            <div class="prompt__dots"><span class="prompt__dot dot--red"></span><span
+                class="prompt__dot dot--amber"></span><span class="prompt__dot dot--green"></span></div>
+            <div class="prompt__tools"><span class="prompt__badge">CODEX COMPOSER PROMPT</span><span
+                class="prompt__copy-hint">⌨️ 실습 입력창 복사용</span></div><span class="prompt__keys">전송: <kbd>Ctrl</kbd> +
+              <kbd>Enter</kbd></span>
+          </div>
+          <div class="prompt__code prompt__code--cols3"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">최종 완료 점검</div>
+        <h2 class="s-title" data-editable>여섯 단계의 <span class="hl">완료 증거</span>를 확인합니다</h2>
+      </div>
+      <div class="s-body">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>단계</th>
+              <th>완료 증거</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. 매뉴얼 분석</td>
+              <td>기능·입력·응답·불확실성을 구분해 설명할 수 있음</td>
+            </tr>
+            <tr>
+              <td>2. 웹앱 추천</td>
+              <td>추천을 비교하고 축제 검색 목표를 선택함</td>
+            </tr>
+            <tr>
+              <td>3. 웹앱 제작</td>
+              <td>지역·기간·키워드와 카드·상태가 작동함</td>
+            </tr>
+            <tr>
+              <td>4. GitHub</td>
+              <td>키 없이 현재 브랜치에 push됨</td>
+            </tr>
+            <tr>
+              <td>5. Vercel</td>
+              <td>환경변수를 사용한 실제 데이터 또는 대기 기록 확인</td>
+            </tr>
+            <tr>
+              <td>6. 자유 수정</td>
+              <td>한 가지 개선 후 재검증·재배포함</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">복습</div>
+        <h2 class="s-title" data-editable>오늘 배운 구조를 <span class="hl">여섯 문장</span>으로 정리합니다</h2>
+      </div>
+      <div class="s-body">
+        <div class="open-list">
+          <div class="open-item"><span class="open-num">01</span>
+            <div><b>API 매뉴얼은 기능·입력·응답으로 나눠 읽는다.</b></div>
+          </div>
+          <div class="open-item"><span class="open-num">02</span>
+            <div><b>추천받은 아이디어는 실제 API 근거와 난이도로 비교한다.</b></div>
+          </div>
+          <div class="open-item"><span class="open-num">03</span>
+            <div><b>화면은 index.html 한 파일, 비밀 처리는 서버 함수가 맡는다.</b></div>
+          </div>
+          <div class="open-item"><span class="open-num">04</span>
+            <div><b>지역·기간은 API에 전달하고 키워드는 받은 목록에서 거른다.</b></div>
+          </div>
+          <div class="open-item"><span class="open-num">05</span>
+            <div><b>환경변수 변경은 새 배포부터 적용된다.</b></div>
+          </div>
+          <div class="open-item"><span class="open-num">06</span>
+            <div><b>수정 뒤에는 같은 기능·보안 테스트를 다시 실행한다.</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="s-head">
+        <div class="s-eyebrow">7일차 연결</div>
+        <h2 class="s-title" data-editable>다음은 작동하는 MVP를 <span class="hl">반복해서 점검하는 방법</span>입니다</h2>
+        <p class="s-lead" data-editable>오늘 한 번 수행한 기능·오류·보안 검사를 7일차에는 재사용 가능한 QA 절차로 바꿉니다.</p>
+      </div>
+      <div class="s-body">
+        <div class="flow flow--4">
+          <div class="flow-item is-active">
+            <div class="flow-num">6일차</div>
+            <div class="flow-title">실제 데이터 MVP</div>
+            <div class="flow-text">제작·배포·자유 수정</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">7일차</div>
+            <div class="flow-title">반복 QA</div>
+            <div class="flow-text">점검 절차를 재사용</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">8일차</div>
+            <div class="flow-title">문서화</div>
+            <div class="flow-text">README·시연 준비</div>
+          </div>
+          <div class="flow-item">
+            <div class="flow-num">9일차</div>
+            <div class="flow-title">발표</div>
+            <div class="flow-text">최종 결과 시연</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav id="dots" aria-label="슬라이드 이동"></nav>
+  <div id="counter" aria-live="polite"></div>
+  <div id="hint">← → 방향키 이동 · Space · <b>F</b> 전체화면 · <b>E</b> 편집</div>
+  <div class="edit-hotzone" aria-hidden="true"></div>
+  <button class="edit-toggle" id="editToggle" type="button" title="편집 모드 (E)" aria-label="편집 모드">✎</button>
+
+  <script>
+    (function () {
+      var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+      var dots = document.getElementById('dots');
+      var counter = document.getElementById('counter');
+      var bar = document.getElementById('progress');
+      var deck = document.getElementById('deck');
+      var current = 0, wheelLock = false, touchX = null;
+
+      function scaleStage() {
+        deck.style.transform = 'scale(' + Math.min(innerWidth / 1920, innerHeight / 1080) + ')';
+      }
+
+      function fit(sl) {
+        var b = sl.querySelector('.s-body');
+        if (!b || !b.children.length) return;
+        b.style.width = '';
+        b.style.transform = '';
+        b.style.alignSelf = '';
+        b.style.transformOrigin = '';
+        b.style.justifyContent = '';
+        var k = 1;
+        for (var n = 0; n < 6; n++) {
+          var top = Infinity, bot = -Infinity;
+          Array.prototype.forEach.call(b.children, function (c) {
+            var r = c.getBoundingClientRect();
+            if (r.height) { top = Math.min(top, r.top); bot = Math.max(bot, r.bottom); }
+          });
+          var contentH = bot - top;
+          var availableH = b.getBoundingClientRect().height;
+          if (contentH <= availableH + 2) break;
+          k = Math.max(0.7, k * availableH / contentH);
+          b.style.alignSelf = 'center';
+          b.style.justifyContent = 'flex-start';
+          b.style.width = (100 / k) + '%';
+          b.style.transformOrigin = 'center top';
+          b.style.transform = 'scale(' + k + ')';
+        }
+      }
+
+      slides.forEach(function (_, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', (i + 1) + '번 슬라이드');
+        b.addEventListener('click', function () { show(i); });
+        dots.appendChild(b);
+      });
+
+      var dotEls = Array.prototype.slice.call(dots.children);
+
+      function show(index) {
+        current = Math.max(0, Math.min(index, slides.length - 1));
+        slides.forEach(function (s, i) {
+          s.classList.toggle('active', i === current);
+          s.classList.toggle('visible', i === current);
+        });
+        dotEls.forEach(function (d, i) { d.classList.toggle('on', i === current); });
+        counter.textContent = (current + 1) + ' / ' + slides.length;
+        bar.style.width = ((current + 1) / slides.length * 100) + '%';
+        fit(slides[current]);
+        if (history.replaceState) history.replaceState(null, '', '#' + (current + 1));
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (document.body.classList.contains('editing') && e.target.getAttribute('contenteditable')) return;
+        if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Spacebar'].indexOf(e.key) > -1) { e.preventDefault(); show(current + 1); }
+        else if (['ArrowLeft', 'ArrowUp', 'PageUp'].indexOf(e.key) > -1) { e.preventDefault(); show(current - 1); }
+        else if (e.key === 'Home') { e.preventDefault(); show(0); }
+        else if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+        else if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+      });
+
+      document.addEventListener('wheel', function (e) {
+        if (wheelLock || Math.abs(e.deltaY) < 20) return;
+        wheelLock = true;
+        show(current + (e.deltaY > 0 ? 1 : -1));
+        setTimeout(function () { wheelLock = false; }, 420);
+      }, { passive: true });
+
+      document.addEventListener('touchstart', function (e) { touchX = e.changedTouches[0].clientX; }, { passive: true });
+      document.addEventListener('touchend', function (e) {
+        if (touchX === null) return;
+        var dx = e.changedTouches[0].clientX - touchX;
+        if (Math.abs(dx) > 45) show(current + (dx < 0 ? 1 : -1));
+        touchX = null;
+      }, { passive: true });
+
+      function copy(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+        return new Promise(function (resolve, reject) {
+          var t = document.createElement('textarea');
+          t.value = text;
+          t.style.cssText = 'position:fixed;left:-9999px';
+          document.body.appendChild(t);
+          t.select();
+          var ok = false;
+          try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+          document.body.removeChild(t);
+          ok ? resolve() : reject();
+        });
+      }
+
+      function cleanPromptText(text) {
+        return text.replace(/\r\n?/g, '\n').split('\n').map(function (line) { return line.trim(); }).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+      }
+
+      document.querySelectorAll('.prompt--console[data-copy]').forEach(function (box) {
+        var promptText = cleanPromptText(box.getAttribute('data-copy'));
+        box.setAttribute('data-copy', promptText);
+        var code = box.querySelector('.prompt__code');
+        if (code) code.textContent = promptText;
+        var b = document.createElement('button');
+        b.className = 'copy-btn';
+        b.type = 'button';
+        b.textContent = '복사';
+        b.setAttribute('aria-label', '프롬프트 복사');
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          copy(box.getAttribute('data-copy')).then(function () {
+            b.textContent = '복사됨 ✓';
+            b.classList.add('is-done');
+            setTimeout(function () { b.textContent = '복사'; b.classList.remove('is-done'); }, 1500);
+          }, function () { b.textContent = '직접 선택'; });
+        });
+        box.appendChild(b);
+      });
+
+      var editToggle = document.getElementById('editToggle');
+      var hotzone = document.querySelector('.edit-hotzone');
+      var hideTimer = null;
+      var editing = false;
+      var EDIT_KEY = 'day06-slide-edits-v1';
+      var editableEls = Array.prototype.slice.call(document.querySelectorAll('[data-editable]'));
+      var original = editableEls.map(function (el) { return el.innerHTML; });
+
+      function saveEdits() {
+        var values = editableEls.map(function (el, i) { return { o: original[i], h: el.innerHTML }; });
+        localStorage.setItem(EDIT_KEY, JSON.stringify(values));
+      }
+
+      function setEditing(on) {
+        editing = on;
+        document.body.classList.toggle('editing', on);
+        editToggle.classList.toggle('active', on);
+        editableEls.forEach(function (el) { el.setAttribute('contenteditable', on ? 'true' : 'false'); });
+        if (!on) saveEdits();
+      }
+
+      function toggleEditing() { setEditing(!editing); }
+
+      try {
+        var saved = JSON.parse(localStorage.getItem(EDIT_KEY) || 'null');
+        if (saved) editableEls.forEach(function (el, i) {
+          var item = saved[i];
+          if (item && item.o === original[i] && item.h !== undefined) el.innerHTML = item.h;
+        });
+      } catch (err) { }
+
+      hotzone.addEventListener('mouseenter', function () { clearTimeout(hideTimer); editToggle.classList.add('show'); });
+      hotzone.addEventListener('mouseleave', function () { hideTimer = setTimeout(function () { if (!editing) editToggle.classList.remove('show'); }, 400); });
+      editToggle.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+      editToggle.addEventListener('mouseleave', function () { hideTimer = setTimeout(function () { if (!editing) editToggle.classList.remove('show'); }, 400); });
+      hotzone.addEventListener('click', toggleEditing);
+      editToggle.addEventListener('click', toggleEditing);
+      document.addEventListener('keydown', function (e) {
+        if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) toggleEditing();
+        if (e.ctrlKey && e.key.toLowerCase() === 's' && editing) { e.preventDefault(); saveEdits(); }
+      });
+
+      addEventListener('resize', function () { scaleStage(); fit(slides[current]); });
+      addEventListener('beforeprint', function () { slides.forEach(function (sl) { fit(sl); }); });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fit(slides[current]); });
+      scaleStage();
+      var start = parseInt((location.hash || '').replace('#', ''), 10);
+      show(isNaN(start) ? 0 : start - 1);
+      window.addEventListener('hashchange', function () {
+        var i = parseInt((location.hash || '').replace('#', ''), 10);
+        if (!isNaN(i) && i - 1 !== current) show(i - 1);
+      });
+    })();
+  </script>
+</body>
+
+</html>

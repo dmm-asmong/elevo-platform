@@ -21,6 +21,16 @@ export const courses: Course[] = [
     tags: ["Google AI Studio", "Gemini", "HTML/CSS/JS"],
   },
   {
+    slug: "vibe-coding-codex",
+    title: "바이브코딩 (Codex)",
+    description: "ChatGPT Plus의 Codex로 대화하며 웹앱을 만듭니다. GitHub 저장부터 배포, 공공데이터 API 연동까지 7회차 실전 과정.",
+    icon: "🧩",
+    color: "#F97316",
+    sessions: 7,
+    status: "active",
+    tags: ["Codex", "ChatGPT Plus", "GitHub", "Vercel"],
+  },
+  {
     slug: "generative-ai",
     title: "생성형AI 활용법",
     description: "ChatGPT, Claude, Gemini 등 생성형 AI 도구를 업무에 실전 적용하는 방법을 배웁니다.",

@@ -1,0 +1,3553 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1일차 · 바이브코딩 첫걸음과 Codex 온보딩 | AD002 DX5기</title>
+  <!-- 조작법: ← → ↑ ↓ Space PageUp/Down 이동 | Home/End 처음·끝 | N 강사노트 | F 전체화면 | 하단 점 클릭 | 모바일 좌우 스와이프 -->
+  <style>
+    /* ══════════════════════════════════════════════════════════════
+   AD002 슬라이드 디자인 시스템  ·  Light Modern Blue
+   토큰 출처: 같은 폴더 DESIGN.md
+   색의 의미 고정:
+   색 규칙은 3가지뿐:
+     --blue  = 지금 집중할 것 (핵심 개념·수칙·검증·오늘 다루는 것)
+     --coral = 위험·에러·하지 말 것
+     회색    = 나머지 전부 (색을 쓰지 않는다)
+   --navy 계열은 색 규칙이 아니라 구획 장치(표지·섹션 표지·31장 주방 뒤편)다.
+   ══════════════════════════════════════════════════════════════ */
+    :root {
+      /* 잉크 3단 — 제목 / 본문 / 보조. 더 잘게 나누지 않는다 */
+      --ink: #292e41;
+      --body: #373f57;
+      --faint: #8491a7;
+      /* 면 */
+      --canvas: #ffffff;
+      --surface: #f4f6fa;
+      --surface-soft: #f8fafc;
+      --hairline: #d7dce5;
+      --divider: #eaedf4;
+      /* 액션 */
+      --blue: #4876ef;
+      --blue-strong: #3157dd;
+      --blue-bright: #2d67ff;
+      --blue-tint: #eff5ff;
+      /* 의미 고정 액센트 */
+      --coral: #ff5656;
+      --coral-tint: #fff0f0;
+      /* 다크 섹션 */
+      --navy: #1b2547;
+      --navy-deep: #131b35;
+      /* 다크 배경 위 전용 — 잉크 3단 규칙의 유일한 예외 */
+      --on-dark: #8ab0ff;
+      /* 형태 */
+      --r-card: 16px;
+      --r-chip: 4px;
+      --r-btn: 8px;
+      --r-pill: 9999px;
+      --sh-card: rgba(17, 42, 128, .08) 2px 6px 16px;
+      --sh-soft: rgba(55, 63, 87, .10) 0 4px 12px;
+      /* 폰트 (외부 CDN 없음 — 시스템 설치 폰트만 사용) */
+      --f: "Pretendard", "Malgun Gothic", "맑은 고딕", dotum, gulim, -apple-system, BlinkMacSystemFont, sans-serif;
+      --f-mono: "D2Coding", "Consolas", "Menlo", monospace;
+    }
+
+    /* 16:9 고정 스케일 — 창 크기가 변해도 슬라이드 비율·여백이 그대로 유지된다.
+   1920×1080에서 1rem = 28px → 본문(.card-p .86rem) 약 24px.
+   글자만 키우고 패딩·간격 rem은 ×0.893으로 낮춰 절대 여백은 그대로 유지한다. */
+    html {
+      font-size: clamp(12px, min(1.4583vw, 2.5926vh), 64px);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--f);
+      color: var(--ink);
+      background: var(--surface);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    /* ── 진행바 ─────────────────────────────────────────── */
+    #progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: var(--blue);
+      z-index: 60;
+      transition: width .32s cubic-bezier(.25, .1, .25, 1);
+      border-radius: 0 var(--r-pill) var(--r-pill) 0;
+    }
+
+    /* ── 덱 & 슬라이드 ──────────────────────────────────── */
+    #deck {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 1.78rem 2.95rem 2.59rem;
+      display: flex;
+      flex-direction: column;
+      background: var(--canvas);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .2s cubic-bezier(.2, .6, .25, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* 이미지 한 장을 그대로 보여주는 전체 화면 슬라이드 */
+    .slide--full-image {
+      padding: 2rem 2.6rem;
+      background: #fff;
+    }
+
+    .slide--full-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* 타이틀 영역과 본문 영역 사이 고정 여백 — 읽기 흐름 우선 */
+    .s-head {
+      margin-bottom: .89rem;
+      flex-shrink: 0;
+    }
+
+    .s-eyebrow {
+      font-size: calc(.68rem * 1.1);
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: .3rem;
+    }
+
+    .s-title {
+      font-size: calc(1.78rem * 1.1);
+      font-weight: 700;
+      line-height: 1.22;
+      letter-spacing: -.02em;
+      word-break: keep-all;
+    }
+
+    .s-title .hl {
+      color: var(--blue);
+    }
+
+    .s-lead {
+      font-size: calc(.98rem * 1.1);
+      font-weight: 400;
+      color: var(--body);
+      margin-top: .42rem;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .s-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: .85rem;
+    }
+
+    .s-body--top {
+      justify-content: flex-start;
+    }
+
+    /* 내용이 많은 장 전용 — 글자 크기·행간은 그대로 두고 상자 안팎 여백만 조인다 */
+    .s-body--tight {
+      gap: .6rem;
+    }
+
+    .s-body--tight .vcard {
+      margin-bottom: .24rem;
+    }
+
+    .s-body--tight .card {
+      gap: .4rem;
+    }
+
+    .s-body--tight .cmp-col {
+      padding: .58rem .74rem;
+      gap: .42rem;
+    }
+
+    .s-body--tight .note {
+      padding-top: .4rem;
+    }
+
+    .s-body--tight .prompt {
+      padding: .56rem .72rem;
+    }
+
+    .s-body--tight .stack {
+      gap: .5rem;
+    }
+
+    .s-body--tight .tbl th {
+      padding: .34rem .5rem;
+    }
+
+    .s-body--tight .tbl td {
+      padding: .3rem .5rem;
+    }
+
+    .s-body--tight .tbl--dense td {
+      padding: .15rem .44rem;
+    }
+
+    .s-body--tight .cut {
+      gap: .24rem;
+    }
+
+    .s-body--tight .floor {
+      padding: .6rem .74rem;
+    }
+
+    .s-body--tight .floor-h {
+      margin-bottom: .42rem;
+    }
+
+    /* 2단계 압축 — 가장 빽빽한 장에만. 글자 크기·행간은 건드리지 않고
+   상자 안팎 여백과 머리글 여백만 더 조인다. */
+    .s-body--dense {
+      gap: .45rem;
+    }
+
+    .s-body--dense .card {
+      gap: .28rem;
+    }
+
+    .s-body--dense .vcard {
+      margin-bottom: .16rem;
+    }
+
+    .s-body--dense .note {
+      padding-top: .32rem;
+    }
+
+    .s-body--dense .prompt {
+      padding: .44rem .62rem;
+    }
+
+    .s-body--dense .prompt-cap {
+      margin-bottom: .22rem;
+    }
+
+    .s-body--dense .cmp-col {
+      padding: .44rem .62rem;
+      gap: .3rem;
+    }
+
+    .s-body--dense .stack {
+      gap: .42rem;
+    }
+
+    .s-body--dense .cut {
+      gap: .16rem;
+    }
+
+    .s-body--dense .floor {
+      padding: .44rem .6rem;
+    }
+
+    .s-body--dense .floor-h {
+      margin-bottom: .3rem;
+    }
+
+    .s-body--dense .door {
+      padding: .3rem .6rem;
+    }
+
+    .s-body--dense .grid2,
+    .s-body--dense .grid3,
+    .s-body--dense .grid4 {
+      gap: .6rem;
+    }
+
+    .s-body--dense .tbl th {
+      padding: .26rem .46rem;
+    }
+
+    .s-body--dense .tbl td {
+      padding: .2rem .46rem;
+    }
+
+    .s-body--dense .tbl--dense td {
+      padding: .12rem .44rem;
+    }
+
+    /* 24장 12행 표: 10% 확대 글자는 유지하고 행간·셀 여백만 압축한다. */
+    .s-body--dense .tbl--dense.tbl--files th {
+      padding: .18rem .44rem;
+    }
+
+    .s-body--dense .tbl--dense.tbl--files td {
+      padding: .05rem .44rem;
+      line-height: 1.3;
+    }
+
+    .s-body--dense .turn {
+      gap: .22rem;
+    }
+
+    /* ── 표지 / 섹션 표지 ───────────────────────────────── */
+    .slide--cover,
+    .slide--section {
+      background: radial-gradient(ellipse at 25% 30%, #26355f 0%, var(--navy-deep) 70%);
+      color: #fff;
+      justify-content: center;
+    }
+
+    .slide--cover .s-title,
+    .slide--section .s-title {
+      color: #fff;
+    }
+
+    .cover-kicker {
+      font-size: calc(.76rem * 1.1);
+      font-weight: 700;
+      letter-spacing: .14em;
+      color: var(--on-dark);
+      margin-bottom: .98rem;
+    }
+
+    .cover-title {
+      font-size: calc(2.7rem * 1.1);
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -.03em;
+    }
+
+    .cover-sub {
+      font-size: calc(1.02rem * 1.1);
+      color: #b9c6e4;
+      margin-top: .8rem;
+      line-height: 1.62;
+      word-break: keep-all;
+    }
+
+    .cover-rule {
+      width: 5rem;
+      height: 4px;
+      background: var(--blue);
+      border-radius: 2px;
+      margin: 1.25rem 0;
+    }
+
+    .sec-num {
+      font-size: calc(.85rem * 1.1);
+      font-weight: 700;
+      letter-spacing: .2em;
+      color: var(--on-dark);
+      margin-bottom: .8rem;
+    }
+
+    .sec-title {
+      font-size: calc(2.3rem * 1.1);
+      font-weight: 700;
+      line-height: 1.22;
+      letter-spacing: -.02em;
+    }
+
+    .sec-meta {
+      font-size: calc(.94rem * 1.1);
+      color: #9fb2d8;
+      margin-top: .8rem;
+    }
+
+    .sec-list {
+      margin-top: 1.34rem;
+      display: flex;
+      gap: .45rem;
+      flex-wrap: wrap;
+    }
+
+    .sec-list span {
+      font-size: calc(.78rem * 1.1);
+      font-weight: 600;
+      color: #cfdcff;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .16);
+      padding: .3rem .75rem;
+      border-radius: var(--r-pill);
+    }
+
+    /* ── 그리드 ─────────────────────────────────────────── */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .9rem;
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .8rem;
+    }
+
+    .grid4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .72rem;
+    }
+
+    .grid-2-1 {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: .9rem;
+    }
+
+    .grid-1-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: .9rem;
+    }
+
+    .card,
+    .flow-node {
+      min-width: 0;
+    }
+
+    /* ── 2장 · 이미지 중심 산출물 요약 ───────────────────── */
+    .outcome-stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-card);
+      box-shadow: var(--sh-card);
+      background: var(--surface);
+    }
+
+    .outcome-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .outcome-labels {
+      position: absolute;
+      left: .72rem;
+      right: .72rem;
+      bottom: .72rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .52rem;
+    }
+
+    .outcome-label {
+      padding: .58rem .7rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .93);
+      border: 1px solid rgba(215, 220, 229, .9);
+      box-shadow: var(--sh-soft);
+      backdrop-filter: blur(8px);
+    }
+
+    .outcome-label b {
+      display: block;
+      font-size: calc(.88rem * 1.1);
+      line-height: 1.35;
+      color: var(--ink);
+    }
+
+    .outcome-label span {
+      display: block;
+      margin-top: .18rem;
+      font-size: calc(.7rem * 1.1);
+      color: var(--body);
+      line-height: 1.45;
+    }
+
+    /* ── 카드 ───────────────────────────────────────────────
+   슬라이드는 5m 거리에서 한 장에 한 생각만 본다. 웹 목록과 달리
+   경쟁하는 인접 콘텐츠가 없으므로 항목을 상자로 격리하지 않는다.
+   L0 = 면 없음(기본) · L1 = 선 하나 · L2 = 채운 면(장당 1개).
+   .card 는 L0 — 구분이 필요한 곳에만 아래에서 선 하나를 준다. */
+    .card {
+      background: none;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    /* L1 — 나란히 놓인 L0 카드끼리만 선으로 가른다.
+   L2(채운 면) 카드는 이미 면으로 구분되므로 제외한다. */
+    .grid2>.card+.card:not(.card--tint):not(.card--blue),
+    .grid3>.card+.card:not(.card--tint):not(.card--blue),
+    .grid4>.card+.card:not(.card--tint):not(.card--blue) {
+      border-left: 1px solid var(--hairline);
+      padding-left: .9rem;
+    }
+
+    .stack>.card+.card:not(.card--tint):not(.card--blue) {
+      border-top: 1px solid var(--hairline);
+      padding-top: .7rem;
+    }
+
+    /* L2 — 채운 면은 base 가 비었으므로 전 속성을 다시 쓴다 */
+    .card--tint {
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: var(--r-card);
+      padding: .78rem .92rem;
+    }
+
+    .card--blue {
+      background: var(--blue-tint);
+      border: 1px solid #c9daff;
+      border-radius: var(--r-card);
+      padding: .78rem .92rem;
+    }
+
+    .card-n {
+      width: 1.42rem;
+      height: 1.42rem;
+      border-radius: var(--r-pill);
+      flex-shrink: 0;
+      background: var(--blue);
+      color: #fff;
+      font-size: calc(.78rem * 1.1);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+
+    /* 카드 제목은 본문(.86rem)보다 확실히 커야 제목으로 읽힌다 — 크기 차 +23% */
+    .card-t {
+      font-size: calc(1.06rem * 1.1);
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.34;
+      word-break: keep-all;
+    }
+
+    .card-t+.card-p,
+    .card-t+.ul {
+      margin-top: .1rem;
+    }
+
+    .card-p {
+      font-size: calc(.86rem * 1.1);
+      font-weight: 400;
+      color: var(--body);
+      line-height: 1.62;
+      word-break: keep-all;
+    }
+
+    .card-p strong {
+      color: var(--body);
+      font-weight: 700;
+    }
+
+    .card-icon {
+      font-size: calc(1.28rem * 1.1);
+      line-height: 1;
+      margin-bottom: 0;
+    }
+
+    /* ── 콜아웃 ─────────────────────────────────────────── */
+    /* 기본 콜아웃은 L1(선 하나) — 37장 중 35장에 반복되는 상자를 없앤다.
+   상자가 남은 것은 수칙(--key)·경고(--warn)뿐이라, 상자를 보면
+   "진짜 중요한 것"이라는 신호가 다시 성립한다. */
+    .note {
+      background: none;
+      border: 0;
+      border-top: 1px solid var(--hairline);
+      color: var(--body);
+      border-radius: 0;
+      padding: .5rem 0 0;
+      font-size: calc(.89rem * 1.1);
+      line-height: 1.6;
+      word-break: keep-all;
+      display: flex;
+      gap: .54rem;
+      align-items: flex-start;
+    }
+
+    .note b {
+      font-weight: 700;
+    }
+
+    .note-ic {
+      font-size: calc(.95rem * 1.1);
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+
+    /* 콜아웃 글자색은 전부 본문 잉크. 배경·테두리만 의미를 갖는다.
+   색이 붙은 것은 위험(코랄)·수칙(크림)·검증 통과(초록) 셋뿐이고 나머지는 중립 회색이다. */
+    /* 파랑은 면이 아니라 선으로 쓴다 — 강조가 흔해지지 않게 */
+    /* L2 — base 가 비었으므로 전 속성을 다시 쓴다 */
+    .note--key {
+      background: var(--canvas);
+      border: 1px solid var(--blue);
+      border-left: 4px solid var(--blue);
+      border-radius: var(--r-card);
+      padding: .64rem .82rem;
+    }
+
+    .note--warn {
+      background: var(--coral-tint);
+      border: 1px solid #fecaca;
+      border-radius: var(--r-card);
+      padding: .64rem .82rem;
+    }
+
+    /* ── 프롬프트 박스 (복사용) ─────────────────────────── */
+    .prompt {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-left: 4px solid var(--blue);
+      border-radius: var(--r-card);
+      padding: .66rem .82rem;
+      font-family: var(--f);
+      font-size: calc(.8rem * 1.1);
+      line-height: 1.68;
+      color: var(--body);
+      white-space: pre-line;
+      text-align: left;
+      word-break: break-word;
+      overflow: hidden;
+    }
+
+    /* 복사 버튼 — 절대배치라 상자 높이를 늘리지 않는다.
+   배경을 상자와 같은 --surface 불투명으로 채워 아래 글자를 깔끔히 가린다. */
+    .copy-btn {
+      position: absolute;
+      top: .3rem;
+      right: .34rem;
+      z-index: 2;
+      font-family: var(--f);
+      font-size: calc(.68rem * 1.1);
+      font-weight: 700;
+      line-height: 1;
+      padding: .3rem .5rem;
+      border-radius: var(--r-chip);
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--blue-strong);
+      border: 1px solid var(--hairline);
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover {
+      background: var(--blue-tint);
+      border-color: var(--blue);
+    }
+
+    .copy-btn.is-done {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    /* 다크 터미널 콘솔형 프롬프트 상자 (일반 이론 카드와 100% 차별화) */
+    .prompt--console {
+      background: #0f172a !important;
+      border: 2px solid #334155 !important;
+      border-left: 5px solid var(--blue) !important;
+      border-radius: 12px !important;
+      padding: 0 !important;
+      color: #f8fafc !important;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .22) !important;
+      overflow: visible !important;
+      white-space: normal !important;
+    }
+
+    .prompt--console .copy-btn {
+      top: .35rem;
+      right: .65rem;
+      background: var(--blue) !important;
+      color: #fff !important;
+      border: none !important;
+      font-weight: 800 !important;
+      font-size: calc(.72rem * 1.1) !important;
+      padding: .35rem .75rem !important;
+      border-radius: 6px !important;
+      box-shadow: 0 2px 8px rgba(43, 92, 230, .45) !important;
+      transition: all .15s ease;
+    }
+
+    .prompt--console .copy-btn:hover {
+      background: var(--blue-strong) !important;
+      transform: translateY(-1px);
+    }
+
+    .prompt--ai {
+      border-left-color: var(--faint);
+    }
+
+    .prompt-cap {
+      font-size: calc(.82rem * 1.1);
+      font-weight: 700;
+      color: var(--blue);
+      margin-bottom: .34rem;
+      display: flex;
+      align-items: center;
+      gap: .32rem;
+    }
+
+    .prompt .ph {
+      background: #e2ebff;
+      color: var(--blue-strong);
+      border-radius: 3px;
+      padding: 0 .2em;
+      font-weight: 700;
+    }
+
+    .prompt .em {
+      background: #e2ebff;
+      color: var(--blue-strong);
+      border-radius: 3px;
+      padding: 0 .2em;
+      font-weight: 700;
+    }
+
+    .prompt .cm {
+      color: var(--faint);
+    }
+
+    /* ── 말풍선 ─────────────────────────────────────────── */
+    .bubble {
+      border-radius: 14px;
+      padding: .53rem .78rem;
+      font-size: calc(.89rem * 1.1);
+      line-height: 1.58;
+      word-break: keep-all;
+    }
+
+    .bubble--me {
+      background: var(--blue);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .bubble--ai {
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      color: var(--body);
+      font-weight: 500;
+    }
+
+    .bubble-who {
+      font-size: calc(.76rem * 1.1);
+      font-weight: 700;
+      color: var(--faint);
+      margin-bottom: .26rem;
+    }
+
+    /* ── 가로 흐름 ──────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: .38rem;
+    }
+
+    /* 흐름도는 상단 액센트 선만 남긴다 — 상자가 남으면
+   흐름(→)보다 박스가 먼저 읽힌다 */
+    .flow-node {
+      flex: 1;
+      background: none;
+      border: 0;
+      border-top: 3px solid var(--blue);
+      border-radius: 0;
+      padding: .5rem .4rem 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      gap: .34rem;
+      text-align: center;
+      align-items: center;
+    }
+
+    .flow-node.n-ai {
+      border-top-color: var(--faint);
+    }
+
+    .flow-node.n-bad {
+      border-top-color: var(--coral);
+    }
+
+    .flow-step {
+      font-size: calc(.68rem * 1.1);
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--faint);
+    }
+
+    .flow-t {
+      font-size: calc(.94rem * 1.1);
+      font-weight: 700;
+      line-height: 1.34;
+      word-break: keep-all;
+    }
+
+    .flow-p {
+      font-size: calc(.79rem * 1.1);
+      color: var(--body);
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .flow-arrow {
+      align-self: center;
+      color: var(--hairline);
+      font-size: calc(1.15rem * 1.1);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── 세로 흐름 ──────────────────────────────────────── */
+    .vflow {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .vitem {
+      display: flex;
+      gap: .67rem;
+    }
+
+    .vrail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 1.48rem;
+      flex-shrink: 0;
+    }
+
+    .vnum {
+      width: 1.48rem;
+      height: 1.48rem;
+      border-radius: var(--r-pill);
+      flex-shrink: 0;
+      background: var(--blue);
+      color: #fff;
+      font-size: calc(.74rem * 1.1);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vnum.ai {
+      background: var(--faint);
+    }
+
+    .vnum.bad {
+      background: var(--coral);
+    }
+
+    .vline {
+      flex: 1;
+      width: 2px;
+      background: var(--hairline);
+      margin: .25rem 0;
+    }
+
+    .vitem:last-child .vline {
+      display: none;
+    }
+
+    /* 좌측 .vrail(번호 원 + 세로선)이 이미 항목을 가르므로 상자는 중복이다 */
+    .vcard {
+      flex: 1;
+      background: none;
+      border: 0;
+      border-radius: 0;
+      padding: .1rem 0 .5rem;
+      margin-bottom: .34rem;
+      box-shadow: none;
+    }
+
+    .vitem:last-child .vcard {
+      margin-bottom: 0;
+    }
+
+    .vlabel {
+      font-size: calc(.89rem * 1.1);
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: .24rem;
+    }
+
+    .vtext {
+      font-size: calc(.83rem * 1.1);
+      color: var(--body);
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+
+    /* ── 23장 · 좌우 2단 대화 + 중앙 검증 게이트 ─────────
+   사람/AI를 색이 아니라 '위치'로 구분한다. 화면에서 채워진 색면은
+   검증 게이트 하나뿐 — 나머지는 흰/회색 면에 4px 액센트 선만 쓴다. */
+    .prereq {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: var(--r-btn);
+      padding: .42rem .8rem;
+      font-size: calc(.83rem * 1.1);
+      color: var(--body);
+      word-break: keep-all;
+    }
+
+    .prereq-n {
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: var(--r-pill);
+      flex-shrink: 0;
+      background: var(--faint);
+      color: #fff;
+      font-size: calc(.7rem * 1.1);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 단계 라벨은 바로 아래 카드 묶음에 붙여 하나의 그룹으로 읽히게 한다 */
+    .turn-h {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      margin-bottom: -.34rem;
+    }
+
+    .turn-h .vlabel {
+      margin-bottom: 0;
+    }
+
+    .turn {
+      gap: .3rem;
+    }
+
+    /* .card와 함께 사용 */
+    .turn--me {
+      border-left: 4px solid var(--hairline);
+    }
+
+    .turn--ai {
+      border-left: 4px solid var(--hairline);
+      background: var(--surface-soft);
+      box-shadow: none;
+    }
+
+    /* 흰 글씨 대비 4.8:1 이상을 확보한 진한 파랑 */
+    .gate {
+      display: flex;
+      gap: .7rem;
+      align-items: flex-start;
+      background: linear-gradient(135deg, #3f68e8, #2a4ac0);
+      color: #fff;
+      border-radius: var(--r-card);
+      padding: .8rem 1rem;
+      box-shadow: rgba(42, 74, 192, .26) 0 6px 18px;
+    }
+
+    .gate-ic {
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: var(--r-pill);
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, .2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(.95rem * 1.1);
+      font-weight: 700;
+    }
+
+    .gate-t {
+      font-size: calc(1.02rem * 1.1);
+      font-weight: 700;
+      line-height: 1.34;
+      word-break: keep-all;
+    }
+
+    .gate-p {
+      font-size: calc(.86rem * 1.1);
+      line-height: 1.6;
+      color: rgba(255, 255, 255, .92);
+      margin-top: .22rem;
+      word-break: keep-all;
+    }
+
+    .legend {
+      display: flex;
+      gap: .9rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: .3rem;
+      vertical-align: middle;
+    }
+
+    /* ── 31장 · 레스토랑 단면도 (보이는 곳 / 볼 수 없는 곳) ─────
+   가로 경계 하나로 가시성을 가른다. 짙은 면은 표지에서 쓰는 --navy 계열 재사용. */
+    .cut {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+    }
+
+    /* 세 블록을 한 단면으로 붙인다 */
+    .floor {
+      border-radius: var(--r-card);
+      padding: .72rem .85rem;
+    }
+
+    .floor-h {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      font-size: calc(.88rem * 1.1);
+      font-weight: 700;
+      margin-bottom: .5rem;
+    }
+
+    .floor--hall {
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      box-shadow: var(--sh-card);
+    }
+
+    .floor--back {
+      background: linear-gradient(160deg, var(--navy), var(--navy-deep));
+    }
+
+    .floor--back .floor-h {
+      color: #fff;
+    }
+
+    .floor--back .card-t {
+      color: #fff;
+    }
+
+    .floor--back .card-p {
+      color: #b9c6e4;
+    }
+
+    .floor--back .chip--gray {
+      background: rgba(255, 255, 255, .13);
+      color: #cfdcff;
+    }
+
+    /* 스윙도어 = API 웨이터. 경계선이 곧 '넘나드는 존재'다 */
+    .door {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      justify-content: center;
+      border-top: 2px dashed var(--hairline);
+      border-bottom: 2px dashed var(--hairline);
+      padding: .42rem .8rem;
+      font-size: calc(.82rem * 1.1);
+      color: var(--body);
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    /* ── ❌ / ✅ 대비 ───────────────────────────────────── */
+    .cmp {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .9rem;
+    }
+
+    .cmp-col {
+      border-radius: var(--r-card);
+      padding: .72rem .86rem;
+      display: flex;
+      flex-direction: column;
+      gap: .52rem;
+    }
+
+    .cmp-col.bad {
+      background: var(--coral-tint);
+      border: 1px solid #fecaca;
+    }
+
+    .cmp-col.good {
+      background: var(--blue-tint);
+      border: 1px solid #c9daff;
+    }
+
+    .cmp-h {
+      font-size: calc(.98rem * 1.1);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: .36rem;
+    }
+
+    .cmp-col.bad .cmp-h {
+      color: #c53030;
+    }
+
+    .cmp-col.good .cmp-h {
+      color: var(--blue-strong);
+    }
+
+    .cmp-p {
+      font-size: calc(.86rem * 1.1);
+      line-height: 1.62;
+      color: var(--body);
+      word-break: keep-all;
+    }
+
+    .cmp-quote {
+      font-size: calc(.83rem * 1.1);
+      line-height: 1.55;
+      font-style: italic;
+      background: rgba(255, 255, 255, .72);
+      border-radius: 10px;
+      padding: .42rem .58rem;
+      color: var(--body);
+    }
+
+    /* ── 표 ─────────────────────────────────────────────── */
+    .tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: calc(.85rem * 1.1);
+    }
+
+    .tbl th {
+      background: var(--surface);
+      color: var(--body);
+      font-weight: 700;
+      text-align: left;
+      padding: .4rem .55rem;
+      border-bottom: 2px solid var(--hairline);
+      font-size: calc(.82rem * 1.1);
+      white-space: nowrap;
+    }
+
+    .tbl td {
+      padding: .36rem .55rem;
+      border-bottom: 1px solid var(--divider);
+      color: var(--body);
+      line-height: 1.5;
+      vertical-align: top;
+      word-break: keep-all;
+    }
+
+    .tbl tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* 행이 10줄을 넘는 표 전용 — 글자 크기는 유지하고 행 여백만 조인다 */
+    .tbl--dense th {
+      padding: .3rem .48rem;
+    }
+
+    .tbl--dense td {
+      padding: .2rem .48rem;
+      line-height: 1.4;
+    }
+
+    .tbl .c {
+      text-align: center;
+    }
+
+    .tbl .no {
+      color: var(--faint);
+    }
+
+    .tbl .yes {
+      color: var(--blue-strong);
+      font-weight: 700;
+    }
+
+    /* 표는 헤더 배경 + 행 구분선으로 이미 구조가 서 있다 — 감싸는 상자를 뺀다 */
+    .tbl-wrap {
+      background: none;
+      border: 0;
+      border-top: 2px solid var(--ink);
+      border-radius: 0;
+      overflow: visible;
+      box-shadow: none;
+    }
+
+    /* ── 칩 / 배지 / 키캡 ───────────────────────────────── */
+    .chip {
+      display: inline-block;
+      font-size: calc(.76rem * 1.1);
+      font-weight: 700;
+      padding: .15rem .46rem;
+      border-radius: var(--r-chip);
+      background: var(--blue-tint);
+      color: var(--blue-strong);
+    }
+
+    .chip--coral {
+      background: var(--coral-tint);
+      color: #c53030;
+    }
+
+    /* 중립 칩 — 어떤 밝은 배경 위에서도 형태가 남도록 윤곽선을 준다.
+   border 대신 inset shadow를 쓰는 이유: 표 안에서 행 높이를 늘리지 않기 위해서다. */
+    .chip--gray {
+      background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      color: var(--body);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      background: var(--blue);
+      color: #fff;
+      font-size: calc(.78rem * 1.1);
+      font-weight: 700;
+      padding: .22rem .7rem;
+      border-radius: var(--r-pill);
+    }
+
+    .kbd {
+      display: inline-block;
+      font-family: var(--f-mono);
+      font-size: calc(.82rem * 1.1);
+      font-weight: 700;
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: .06rem .38rem;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    code {
+      font-family: var(--f-mono);
+      font-size: .92em;
+      background: var(--surface);
+      border-radius: 4px;
+      padding: .08em .35em;
+      color: var(--blue-strong);
+    }
+
+    /* ── 소소한 유틸 ────────────────────────────────────── */
+    .row {
+      display: flex;
+      gap: .45rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+
+    .big {
+      font-size: calc(2.05rem * 1.1);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -.03em;
+      color: var(--blue);
+    }
+
+    .mini {
+      font-size: calc(.78rem * 1.1);
+      color: var(--faint);
+      line-height: 1.55;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+    }
+
+    .ul li {
+      font-size: calc(.86rem * 1.1);
+      color: var(--body);
+      line-height: 1.6;
+      padding-left: .98rem;
+      position: relative;
+      word-break: keep-all;
+    }
+
+    .ul li::before {
+      content: "·";
+      position: absolute;
+      left: .35rem;
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    .ul--ok li::before {
+      content: "✓";
+      font-size: calc(.78rem * 1.1);
+      color: var(--blue);
+      left: 0;
+    }
+
+    .ul--no li::before {
+      content: "✕";
+      font-size: calc(.74rem * 1.1);
+      color: var(--coral);
+      left: 0;
+    }
+
+    /* ── 타임라인 ───────────────────────────────────────── */
+    .tl {
+      display: flex;
+      gap: .23rem;
+      align-items: stretch;
+    }
+
+    .tl-b {
+      border-radius: 10px;
+      padding: .46rem .43rem;
+      display: flex;
+      flex-direction: column;
+      gap: .22rem;
+      justify-content: flex-start;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+
+    /* 실습만 파랑. 이론·휴식은 흰 면과 회색 면으로 나눈다 */
+    .tl-b.theory {
+      background: var(--canvas);
+      border-color: var(--hairline);
+    }
+
+    .tl-b.lab {
+      background: var(--blue-tint);
+      border-color: #c9daff;
+    }
+
+    .tl-b.rest {
+      background: var(--surface);
+      border-color: var(--divider);
+    }
+
+    .tl-t {
+      font-size: calc(.82rem * 1.1);
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.36;
+      word-break: keep-all;
+    }
+
+    .tl-m {
+      font-size: calc(.72rem * 1.1);
+      color: var(--body);
+      line-height: 1.45;
+    }
+
+    /* ── 브라우저 / 화면 목업 ───────────────────────────── */
+    .mock {
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--sh-card);
+    }
+
+    .mock-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--divider);
+      padding: .3rem .54rem;
+      display: flex;
+      align-items: center;
+      gap: .27rem;
+    }
+
+    .mock-dot {
+      width: .42rem;
+      height: .42rem;
+      border-radius: 50%;
+      background: var(--hairline);
+    }
+
+    .mock-url {
+      flex: 1;
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-radius: var(--r-pill);
+      font-size: calc(.68rem * 1.1);
+      color: var(--faint);
+      padding: .1rem .55rem;
+      font-family: var(--f-mono);
+      margin-left: .3rem;
+    }
+
+    .mock-body {
+      padding: .7rem .82rem;
+    }
+
+    /* ── 하단 점 내비 ───────────────────────────────────── */
+    #dots {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 5px;
+      z-index: 50;
+      max-width: 80vw;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: .3rem .5rem;
+      border-radius: var(--r-pill);
+    }
+
+    #dots button {
+      width: 7px;
+      height: 7px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: var(--hairline);
+      cursor: pointer;
+      transition: all .18s;
+    }
+
+    #dots button:hover {
+      background: var(--faint);
+      transform: scale(1.3);
+    }
+
+    #dots button.on {
+      background: var(--blue);
+      width: 18px;
+      border-radius: var(--r-pill);
+    }
+
+    .slide--cover~#dots button,
+    .dark #dots button {
+      background: rgba(255, 255, 255, .25);
+    }
+
+    /* ── 카운터 & 힌트 ──────────────────────────────────── */
+    #counter {
+      position: fixed;
+      bottom: 1rem;
+      right: 1.4rem;
+      z-index: 50;
+      font-size: calc(.72rem * 1.1);
+      font-weight: 700;
+      color: var(--faint);
+      font-family: var(--f-mono);
+    }
+
+    #hint {
+      position: fixed;
+      bottom: 1rem;
+      left: 1.4rem;
+      z-index: 50;
+      font-size: calc(.66rem * 1.1);
+      color: var(--faint);
+    }
+
+    body.dark #counter,
+    body.dark #hint {
+      color: rgba(255, 255, 255, .45);
+    }
+
+    body.dark #dots button {
+      background: rgba(255, 255, 255, .22);
+    }
+
+    body.dark #dots button.on {
+      background: var(--on-dark);
+    }
+
+    /* ── 강사노트 패널 ──────────────────────────────────── */
+    #notes {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 70;
+      background: var(--navy-deep);
+      color: #dbe3f7;
+      padding: .9rem 2rem 1.05rem;
+      font-size: calc(.88rem * 1.1);
+      line-height: 1.7;
+      border-top: 3px solid var(--blue);
+      transform: translateY(101%);
+      transition: transform .22s cubic-bezier(.2, .6, .25, 1);
+      max-height: 42vh;
+      overflow-y: auto;
+      word-break: keep-all;
+    }
+
+    #notes.on {
+      transform: translateY(0);
+    }
+
+    #notes .nt {
+      font-size: calc(.68rem * 1.1);
+      font-weight: 700;
+      letter-spacing: .14em;
+      color: var(--on-dark);
+      margin-bottom: .4rem;
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="progress"></div>
+  <div id="deck">
+    <!-- 슬라이드 문구 원칙: 강사 스크립트가 아닌 발표용 키워드. 명사·명사구·~함/~음 종결, 한 줄 한 핵심, 제목·부제·본문 위계 우선. 상세 설명은 data-notes와 발표로 처리. -->
+
+    <!-- ═══════════ PART 0 · 오프닝 (1~5) ═══════════ -->
+
+    <!-- 1 -->
+
+
+
+    <section class="slide title-slide" style="justify-content:center;padding:4.5rem 5.5rem"
+      data-notes="이 장 2분. 강사 소개와 오늘 강의의 메인 테마를 알립니다. 오늘은 파이썬이나 자바스크립트 문법을 외우는 날이 아니라, AI 코딩 에이전트(Codex)를 내 업무 조수로 부리는 '지휘관의 첫날'임을 선언합니다.">
+      <div class="s-head" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem">
+          <span style="color:var(--faint);font-size:calc(.85rem * 1.1);font-weight:600">바이브코딩 9회 완성 과정 · 1일차</span>
+        </div>
+        <h1 class="s-title"
+          style="font-size:calc(2.6rem * 1.1);font-weight:800;line-height:1.25;letter-spacing:-0.03em;color:var(--ink);margin:0 0 1.2rem 0">
+          바이브코딩 첫걸음과<br>
+          <span class="hl">OpenAI Codex 온보딩</span>
+        </h1>
+        <p class="s-lead" style="font-size:calc(1.15rem * 1.1);color:var(--body);line-height:1.6;margin:0">
+          질문만 하던 대화형 챗봇에서 — <strong>내 컴퓨터 파일을 직접 다루는 에이전트 지휘관으로</strong>
+        </p>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 2분. 오늘 확인할 3가지 산출물과 이를 통해 변화할 4대 핵심 역량을 한눈에 제시합니다. 오늘은 코드를 직접 짜는 날이 아니라, 작업 환경을 구분하고 안전하게 AI 에이전트를 지휘·검증하는 날임을 강조합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">오늘의 목표 &amp; 산출물</div>
+        <h2 class="s-title">오늘 확인할 <span class="hl">3가지 결과</span>와 핵심 변화</h2>
+        <p class="s-lead">연결 · 정리 · 기록으로 완성하는 안전한 AI 에이전트 온보딩</p>
+      </div>
+      <div class="s-body s-body--dense">
+        <div class="outcome-stage">
+          <img src="/images/vibe-coding-codex/session-01/day01-slide02-three-outcomes.png" alt="AI 작업 환경을 구분하고 플러그인과 로컬 폴더 작업을 체험하는 세 가지 결과">
+          <div class="outcome-labels">
+            <div class="outcome-label"><b>① 스마트 실습 폴더</b><span>파일 12개를 말로 지시해 6개 폴더로 자동 분류</span></div>
+            <div class="outcome-label"><b>② 플러그인 읽기 결과</b><span>Google Drive 문서를 찾아 핵심 3줄 요약</span></div>
+            <div class="outcome-label"><b>③ <code>정리기록.md</code></b><span>실제로 통했던 프롬프트와 판단 기준을 기록한 일지</span></div>
+          </div>
+        </div>
+        <div class="grid4" style="margin-top:.4rem">
+          <div class="card" style="padding:.5rem .7rem">
+            <div class="card-t" style="font-size:calc(.78rem * 1.1)">① 멘탈 모델 전환</div>
+            <div class="card-p" style="font-size:calc(.7rem * 1.1)"><strong>코더</strong>에서 AI 에이전트를 지휘하는
+              <strong>오케스트레이터</strong>로 전환
+            </div>
+          </div>
+          <div class="card" style="padding:.5rem .7rem">
+            <div class="card-t" style="font-size:calc(.78rem * 1.1)">② 환경 구분</div>
+            <div class="card-p" style="font-size:calc(.7rem * 1.1)"><strong>Chat · Work · Codex</strong>의 작업 위치와 권한 범위
+              이해</div>
+          </div>
+          <div class="card" style="padding:.5rem .7rem">
+            <div class="card-t" style="font-size:calc(.78rem * 1.1)">③ 안전 루프 체득</div>
+            <div class="card-p" style="font-size:calc(.7rem * 1.1)"><strong>요청 → 미리보기 → 승인 → 실행 → 검증</strong>의 5단계 정착
+            </div>
+          </div>
+          <div class="card" style="padding:.5rem .7rem">
+            <div class="card-t" style="font-size:calc(.78rem * 1.1)">④ 로컬 작업 완주</div>
+            <div class="card-p" style="font-size:calc(.7rem * 1.1)">복사본 폴더 지정, 승인된 이동 결과를 <strong>탐색기에서 직접 검증</strong>
+            </div>
+          </div>
+        </div>
+        <div class="note note--key" style="margin-top:.3rem">
+          <span class="note-ic">🎯</span>
+          <div><b>오늘의 완료 기준: 완벽한 코드 이해가 아닙니다</b> — <b>Chat·Work·Codex 구분</b>, <b>읽기 권한 확인</b>, <b>로컬 폴더 분류 및 탐색기 직접
+              검증</b></div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 2분. 오전과 오후의 명확한 역할 분담을 설명합니다. 오전에는 패러다임 이해와 웹 플러그인 읽기 실습을 마치고, 오후에는 로컬 디스크의 진짜 파일 작업을 안전하게 수행합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">오늘의 흐름</div>
+        <h2 class="s-title">오늘의 <span class="hl">진행 순서</span></h2>
+        <p class="s-lead">웹 환경의 안전한 읽기에서 내 컴퓨터의 직접 파일 제어로 확장</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card" style="border-left:4px solid var(--blue);padding-left:1rem">
+            <div class="chip" style="align-self:flex-start">AI 작업 환경 &amp; 웹 읽기</div>
+            <div class="vflow" style="margin-top:.6rem">
+              <div class="vitem">
+                <div class="vrail">
+                  <div class="vnum">1</div>
+                  <div class="vline"></div>
+                </div>
+                <div class="vcard">
+                  <div class="vlabel">도입 &amp; 패러다임 선언</div>
+                  <div class="vtext">2026 에이전틱 엔지니어링과 지휘자의 역할</div>
+                </div>
+              </div>
+              <div class="vitem">
+                <div class="vrail">
+                  <div class="vnum">2</div>
+                  <div class="vline"></div>
+                </div>
+                <div class="vcard">
+                  <div class="vlabel">AI 도구 멘탈 모델</div>
+                  <div class="vtext">Chat · Work · Codex 작업 범위와 Vibe + Eng 하이브리드</div>
+                </div>
+              </div>
+              <div class="vitem">
+                <div class="vrail">
+                  <div class="vnum ok">3</div>
+                </div>
+                <div class="vcard">
+                  <div class="vlabel">플러그인 연결 실습</div>
+                  <div class="vtext">Google Drive 읽기 권한 확인 및 3줄 요약</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="border-left:4px solid var(--ink);padding-left:1rem">
+            <div class="chip chip--gray" style="align-self:flex-start">Codex 데스크톱 &amp; 로컬 파일 제어</div>
+            <div class="vflow" style="margin-top:.6rem">
+              <div class="vitem">
+                <div class="vrail">
+                  <div class="vnum">4</div>
+                  <div class="vline"></div>
+                </div>
+                <div class="vcard">
+                  <div class="vlabel">Codex 앱 적응 &amp; 멘탈 모델</div>
+                  <div class="vtext">3구역 화면, 안전 제0원칙(Approve), 화이트보드 비유</div>
+                </div>
+              </div>
+              <div class="vitem">
+                <div class="vrail">
+                  <div class="vnum">5</div>
+                  <div class="vline"></div>
+                </div>
+                <div class="vcard">
+                  <div class="vlabel">스마트 파일 자동 분류 실습</div>
+                  <div class="vtext">탐색기 준비, Ask-검증-Code 루프로 파일 12개 정리</div>
+                </div>
+              </div>
+              <div class="vitem">
+                <div class="vrail">
+                  <div class="vnum ok">6</div>
+                </div>
+                <div class="vcard">
+                  <div class="vlabel">기록 &amp; 3문장 셀프 체크</div>
+                  <div class="vtext">정리기록.md 작성 완료, 2일차 웹 제작 연결</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 2분. 9일 전체 로드맵에서 오늘 1일차가 어디에 위치하는지 짚어줍니다. 우리는 문법을 외우는 게 아니라, 1~3일차에 미니 웹도구를 띄우고, 4~6일차에 구글 시트 DB와 Vercel 배포를 붙이며, 7~9일차에 공공 API와 Skills를 얹어 나만의 라이브 MVP를 완성하는 여정임을 선언합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">9일 로드맵</div>
+        <h2 class="s-title">9일 뒤 <span class="hl">1인 AI 프로덕트 빌더</span></h2>
+        <p class="s-lead">도구 온보딩에서 스프레드시트 DB 연동, Vercel 라이브 배포, 최종 MVP 발표까지</p>
+      </div>
+      <div class="s-body">
+        <div class="grid3" style="gap:.9rem">
+          <!-- 1단계: 1~3일차 -->
+          <div class="card" style="border-top:4px solid var(--blue);padding:1rem 1.1rem;background:#f8fbff">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+              <span class="chip" style="background:var(--blue);color:#fff;font-weight:700">1단계 · 1~3일차</span>
+              <span class="mini" style="color:var(--blue-strong);font-weight:700">바이브코딩 기초</span>
+            </div>
+            <div class="card-t" style="font-size:calc(.86rem * 1.1);color:var(--blue-strong);margin-bottom:.5rem">
+              기초 런칭 — 말로 만들고 로컬 제어
+            </div>
+            <div class="vflow" style="gap:.45rem;font-size:calc(.75rem * 1.1)">
+              <div style="background:#eef5ff;border:1.5px solid #bfdbfe;border-radius:6px;padding:.4rem .6rem">
+                <span class="chip" style="background:var(--blue);color:#fff;font-size:.65rem;padding:.1rem .35rem">🚩 오늘
+                  1일차</span>
+                <div style="font-weight:800;color:var(--ink);margin-top:.2rem">Codex 온보딩 &amp; 파일 제어</div>
+                <div class="mini" style="color:var(--body)">도구 3종 구분 · 안전 제0원칙 · 폴더 자동화</div>
+              </div>
+              <div style="padding:.3rem .5rem">
+                <div style="font-weight:700;color:var(--ink)">2일차 · 마이크로 PRD &amp; 웹사이트</div>
+                <div class="mini" style="color:var(--faint)">개인 주제 PRD · 1페이지 소개 사이트 완성</div>
+              </div>
+              <div style="padding:.3rem .5rem">
+                <div style="font-weight:700;color:var(--ink)">3일차 · 단일 HTML 미니 웹도구</div>
+                <div class="mini" style="color:var(--faint)">입력–처리–출력이 작동하는 인터랙티브 앱</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2단계: 4~6일차 -->
+          <div class="card" style="border-top:4px solid #64748b;padding:1rem 1.1rem;background:#f8fafc">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+              <span class="chip" style="background:#64748b;color:#fff;font-weight:700">2단계 · 4~6일차</span>
+              <span class="mini" style="color:var(--faint);font-weight:700">버전관리 &amp; 배포</span>
+            </div>
+            <div class="card-t" style="font-size:calc(.86rem * 1.1);color:var(--ink);margin-bottom:.5rem">
+              배포 &amp; 데이터 — 전 세계 접속 URL
+            </div>
+            <div class="vflow" style="gap:.45rem;font-size:calc(.75rem * 1.1)">
+              <div style="padding:.3rem .5rem">
+                <div style="font-weight:700;color:var(--ink)">4일차 · GitHub 버전관리 &amp; 백업</div>
+                <div class="mini" style="color:var(--faint)">초간단 변경 기록 · 언제든 안전한 되돌리기</div>
+              </div>
+              <div style="padding:.3rem .5rem">
+                <div style="font-weight:700;color:var(--ink)">5일차 · Google Sheets DB 연동</div>
+                <div class="mini" style="color:var(--faint)">스프레드시트를 노코드 데이터베이스로 활용</div>
+              </div>
+              <div style="padding:.3rem .5rem">
+                <div style="font-weight:700;color:var(--ink)">6일차 · Vercel 배포 &amp; CI/CD 자동화</div>
+                <div class="mini" style="color:var(--faint)">전 세계 접속 링크 · 모바일 홈 화면 QR코드</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3단계: 7~9일차 -->
+          <div class="card" style="border-top:4px solid #1e293b;padding:1rem 1.1rem;background:#f8fafc">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+              <span class="chip" style="background:#1e293b;color:#fff;font-weight:700">3단계 · 7~9일차</span>
+              <span class="mini" style="color:var(--faint);font-weight:700">비즈니스 MVP</span>
+            </div>
+            <div class="card-t" style="font-size:calc(.86rem * 1.1);color:var(--ink);margin-bottom:.5rem">
+              실전 서비스 — 에이전트 확장 &amp; 런칭
+            </div>
+            <div class="vflow" style="gap:.45rem;font-size:calc(.75rem * 1.1)">
+              <div style="padding:.3rem .5rem">
+                <div style="font-weight:700;color:var(--ink)">7일차 · Codex Skills 나만의 스킬</div>
+                <div class="mini" style="color:var(--faint)">반복 작업을 원클릭으로 처리하는 에이전트 확장</div>
+              </div>
+              <div style="padding:.3rem .5rem">
+                <div style="font-weight:700;color:var(--ink)">8일차 · 공공데이터 API 실시간 연동</div>
+                <div class="mini" style="color:var(--faint)">실제 날씨·행정 데이터를 안전하게 가져오기</div>
+              </div>
+              <div style="background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:6px;padding:.4rem .6rem">
+                <span class="chip" style="background:#1e293b;color:#fff;font-size:.65rem;padding:.1rem .35rem">🎉 9일차
+                  최종</span>
+                <div style="font-weight:800;color:var(--ink);margin-top:.2rem">개인 MVP 런칭 &amp; 5분 데모 발표</div>
+                <div class="mini" style="color:var(--body)">완성된 웹앱 라이브 시연 및 1인 빌더 회고</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.7rem">
+          <span class="note-ic">💡</span>
+          <div><b>9일의 지향점:</b> 복잡한 프로그래밍 문법을 외우는 것이 아니라, <b>AI와 함께 아이디어를 기획하고, 구글 시트 DB를 붙이고, Vercel로 라이브 배포하는 실전 빌더의
+              역량</b>을 완성합니다.</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide title-slide" style="justify-content:center;padding:4.5rem 5.5rem"
+      data-notes="이 장 1분. 오전 세션의 문을 엽니다. '코더'가 아니라 '오케스트레이터(지휘자)'라는 멘탈 모델 전환이 이번 시간의 가장 중요한 열쇠입니다.">
+      <div class="s-head" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem">
+          <span class="chip"
+            style="background:var(--blue);color:#fff;font-weight:700;font-size:calc(.75rem * 1.1);padding:.25rem .65rem;border-radius:6px">PART
+            1</span>
+          <span style="color:var(--faint);font-size:calc(.85rem * 1.1);font-weight:600">오리엔테이션 &amp; 패러다임 전환</span>
+        </div>
+        <h1 class="s-title"
+          style="font-size:calc(2.6rem * 1.1);font-weight:800;line-height:1.25;letter-spacing:-0.03em;color:var(--ink);margin:0 0 1.2rem 0">
+          코더에서<br>
+          <span class="hl">오케스트레이터</span>로
+        </h1>
+        <p class="s-lead" style="font-size:calc(1.15rem * 1.1);color:var(--body);line-height:1.6;margin:0">
+          AI에게 코드를 한 줄씩 시키는 대신 — <strong>목표를 정의하고 결과를 감독하는 사람</strong>
+        </p>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 4분. 2025년 초 카파시의 '바이브 코딩' 선언 이후 1년이 지난 2026년 현재, 소프트웨어 개발 패러다임이 어떻게 '에이전틱 엔지니어링'으로 진화했는지 최신 트렌드를 짚어줍니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">최신 트렌드 &amp; 패러다임</div>
+        <h2 class="s-title">2025년 자연어 선언 → <span class="hl">2026년 에이전틱 엔지니어링</span></h2>
+        <p class="s-lead">카파시의 선언 1년 후 — <strong>'그냥 대충 말하기'에서 'AI 에이전트 감독·지휘 체계'로의 진화</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--tint">
+            <div class="chip chip--gray" style="align-self:flex-start">2025년의 바이브코딩 (Vibe Coding)</div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:var(--ink)"><i>"새로운 프로그래밍 언어는 영어/한국어다"</i>
+            </div>
+            <ul class="ul" style="font-size:calc(.78rem * 1.1)">
+              <li>안드레이 카파시(전 OpenAI 창립멤버)의 역사적 선언</li>
+              <li>문법을 몰라도 자연어로 아이디어를 즉시 앱으로 제작</li>
+              <li>그러나 <b>"통제되지 않은 환각과 맹신"</b>이라는 한계 봉착</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left:4px solid var(--blue);background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff">2026년 현재: 에이전틱 엔지니어링</div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:var(--blue-strong)"><i>"AI 에이전트를 안전하게 지휘·통제하는
+                능력"</i></div>
+            <ul class="ul ul--ok" style="font-size:calc(.78rem * 1.1)">
+              <li>AI가 혼자 날뛰지 않도록 <b>권한과 가드레일 통제</b></li>
+              <li><b>Ask → 검증 → 승인(Approve)</b>의 책임 소통 루프 확립</li>
+              <li>단순 코더가 아닌 <b>1인 오케스트레이터(지휘자)</b>의 시대</li>
+            </ul>
+          </div>
+        </div>
+        <div class="note note--key" style="margin-top:.6rem">
+          <span class="note-ic">💡</span>
+          <div><b>2026 바이브코딩의 핵심:</b> 단순히 AI에게 말을 거는 것이 아니라, <b>내 컴퓨터의 안전을 지키며 완벽한 결과를 끌어내는 지휘 규칙</b>을 배우는 것입니다.</div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 4분. 초보자는 'AI가 다 짜주겠지(100% 방임)'하다가 망하고, 옛날 개발자는 '내가 다 검증해야지(100% 수작업)'하다가 지칩니다. 카파시의 초고속 자연어 생성(Vibe)에 엔지니어의 냉철한 검증 가드레일(Engineering)이 결합될 때 비로소 1인 프로덕트 빌더가 완성된다는 하이브리드 원칙을 강조합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">핵심 원칙 · 멘탈 모델</div>
+        <h2 class="s-title">속도는 AI에게, 결정은 인간에게 — <span class="hl">Vibe + Engineering</span></h2>
+        <p class="s-lead">100% 방임도, 100% 수작업도 아닙니다 — <strong>초고속 생성(AI)과 안전한 가드레일(인간)의 결합</strong></p>
+      </div>
+      <div class="s-body">
+        <!-- Vibe vs Engineering 듀얼 배너 바 -->
+        <div
+          style="background:#e2e8f0;border-radius:10px;height:38px;display:flex;overflow:hidden;margin-bottom:1rem;border:1px solid #cbd5e1;box-shadow:inset 0 2px 4px rgba(0,0,0,.04)">
+          <div
+            style="width:65%;background:linear-gradient(90deg, #2b5ce6, #4175fc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:calc(.82rem * 1.1);letter-spacing:0.02em">
+            ⚡ Vibe Coding — AI에게 초고속 초안 위임 (속도 폭발)
+          </div>
+          <div
+            style="width:35%;background:linear-gradient(90deg, #1e293b, #0f172a);color:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:calc(.82rem * 1.1);letter-spacing:0.02em">
+            🛡️ Engineering — 인간의 가드레일 (안전·품질)
+          </div>
+        </div>
+
+        <div class="grid2" style="gap:1.1rem">
+          <!-- 좌측: AI 바이브 코딩 -->
+          <div class="card" style="border-left:4px solid var(--blue);padding:1.1rem 1.25rem;background:#f8fbff">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="chip" style="background:var(--blue);color:#fff;font-weight:700">⚡ AI 바이브 코딩 (Speed)</span>
+              <span class="mini" style="color:var(--blue-strong);font-weight:700">속도 &amp; 생산성 폭발</span>
+            </div>
+            <div class="card-t" style="font-size:calc(.95rem * 1.1);color:var(--blue-strong);margin-top:.3rem">
+              문법 암기 대신 <b>'원하는 결과'를 자연어로 지휘</b>
+            </div>
+            <ul class="ul ul--ok" style="font-size:calc(.78rem * 1.1)">
+              <li>기획서, 폴더 구조, 반복 코드를 <b>몇 초 만에 자동 완성</b></li>
+              <li>복잡한 프로그래밍 문법 몰라도 아이디어를 즉시 구현</li>
+              <li>2025 카파시의 선언: <i>"새로운 프로그래밍 언어는 한국어/영어"</i></li>
+            </ul>
+          </div>
+
+          <!-- 우측: 인간 엔지니어링 가드레일 -->
+          <div class="card" style="border-left:4px solid #1e293b;padding:1.1rem 1.25rem;background:#f8fafc">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="chip" style="background:#1e293b;color:#fff;font-weight:700">🛡️ 엔지니어링 가드레일 (Safety)</span>
+              <span class="mini" style="color:#475569;font-weight:700">품질 &amp; 안전 가드레일</span>
+            </div>
+            <div class="card-t" style="font-size:calc(.95rem * 1.1);color:#1e293b;margin-top:.3rem">
+              AI의 답변을 맹신하지 않고 <b>'결과물과 권한'을 확인</b>
+            </div>
+            <ul class="ul" style="font-size:calc(.78rem * 1.1)">
+              <li>실행 전 <b>계획표 확인(Ask Mode)</b> 및 내 컴퓨터 변경 권한 통제</li>
+              <li>중요 파일 원본 훼손 여부 및 <b>결과를 내 눈으로 직접 대조</b></li>
+              <li>2026 글로벌 AI 표준: <b>Human-in-the-Loop (인간 참여형 검증)</b></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.65rem">
+          <span class="note-ic">🔑</span>
+          <div><b>1인 빌더의 결론:</b><br>
+            AI의 압도적인 생성 속도에 인간의 냉철한 검증 가드레일이 결합될 때 비로소 완성도 높은 프로덕트가 탄생합니다.
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 3분. 왼쪽의 '다시 해줘'를 실제 초보자들이 챗봇에게 치는 톤으로 읽어주면 깊은 공감을 얻습니다. 오른쪽 지휘자 모드는 문제 지점(견적서.csv)과 원하는 위치(03_표)를 짚어주는 것만으로 AI가 100% 알아듣는다는 차이를 하단 3단계 공식과 함께 강조합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">대화 안티패턴 vs 모범사례</div>
+        <h2 class="s-title">❌ 슬롯머신 코딩 vs ✅ 지휘자 모드</h2>
+        <p class="s-lead">결과가 아쉬울 때 어떻게 말하는가 — <strong>초보와 숙련자를 가르는 결정적 한 끗</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2" style="gap:1.2rem">
+          <!-- 왼쪽: 슬롯머신 코딩 (Bad) -->
+          <div class="card" style="border-left:4px solid #e05252;padding:1.1rem 1.2rem;gap:.65rem;background:#fffaf9">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="chip" style="background:#fde8e8;color:#c53030;font-weight:700">❌ 슬롯머신 코딩 (운에 맡기기)</span>
+              <span class="mini" style="color:#c53030;font-weight:700">수정 확률 10% 미만</span>
+            </div>
+            <!-- 발화 예시 말풍선 -->
+            <div
+              style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:.65rem .85rem;margin-top:.2rem">
+              <div class="mini" style="color:#991b1b;font-weight:700;margin-bottom:.2rem">💬 흔한 초보자의 프롬프트:</div>
+              <div style="font-size:calc(.82rem * 1.1);color:#7f1d1d;font-style:italic">
+                “이상해. 다시 해줘.”<br>
+                “아까 그 파일 안 됐는데? 제대로 좀 해봐.”
+              </div>
+            </div>
+            <ul class="ul ul--no" style="font-size:calc(.78rem * 1.1);margin-top:.2rem">
+              <li><b>무엇이 왜 틀렸는지</b> 전혀 짚어주지 않음</li>
+              <li>AI가 매번 다른 답을 내놓으며 대화가 겉돎</li>
+              <li>결국 코드가 꼬여 처음부터 다시 시작하게 됨</li>
+            </ul>
+          </div>
+
+          <!-- 오른쪽: 지휘자 모드 (Good) -->
+          <div class="card"
+            style="border-left:4px solid var(--blue);padding:1.1rem 1.2rem;gap:.65rem;background:#f8fbff">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="chip" style="background:var(--blue);color:#fff;font-weight:700">✅ 지휘자 모드 (정확히 지시)</span>
+              <span class="mini" style="color:var(--blue-strong);font-weight:700">1회 만에 수정 완료</span>
+            </div>
+            <!-- 발화 예시 말풍선 -->
+            <div
+              style="background:#fff;border:1.5px solid #bfdbfe;border-radius:8px;padding:.65rem .85rem;margin-top:.2rem">
+              <div class="mini" style="color:var(--blue-strong);font-weight:700;margin-bottom:.2rem">💬 지휘관의 3단계 프롬프트:
+              </div>
+              <div style="font-size:calc(.82rem * 1.1);color:var(--ink);line-height:1.45">
+                “계획표에서 <b>견적서.csv</b>는 문서가 아니라 표 데이터야. 01_문서가 아니라 <b>03_표로 계획을 수정</b>해줘.”
+              </div>
+            </div>
+            <ul class="ul ul--ok" style="font-size:calc(.78rem * 1.1);margin-top:.2rem">
+              <li><b>문제 지점</b>(견적서.csv)을 명확하게 지목</li>
+              <li><b>판단 이유</b>(문서가 아닌 표)와 <b>목표 위치</b>(03_표)를 제시</li>
+              <li>AI가 딴소리 없이 즉시 의도한 대로 완벽 수정</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 하단 공식 배너 -->
+        <div class="note note--key" style="margin-top:.6rem;display:flex;align-items:center;gap:.8rem">
+          <span class="note-ic" style="font-size:1.2rem">💡</span>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:calc(.78rem * 1.1)">
+            <span style="font-weight:700;color:var(--blue-strong)">지휘자의 3조각 공식:</span>
+            <span class="chip" style="background:#fff;border:1px solid #c9daff">① 대상 지목 (무엇이)</span>
+            <span>➔</span>
+            <span class="chip" style="background:#fff;border:1px solid #c9daff">② 판단 이유 (왜 틀렸고)</span>
+            <span>➔</span>
+            <span class="chip" style="background:#fff;border:1px solid #c9daff">③ 변경 지시 (어디로 바꿀지)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="세 도구의 우열이 아니라 역할 차이를 설명한다. 마지막 행의 선택 기준을 왼쪽부터 읽은 뒤, 오늘 수업에서는 실제 웹페이지 제작을 위해 Codex를 사용한다고 연결한다.">
+      <div class="s-head">
+        <div class="s-eyebrow">AI 도구 3대 축</div>
+        <h2 class="s-title">처음이라면 이것만 — <span class="hl">Chat · Work · Codex</span></h2>
+        <p class="s-lead">대화 상대 · 업무 비서 · 프로그램 개발자 — <strong>AI가 어디까지 직접 행동하는가로 구분</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="tbl-wrap">
+          <table class="tbl" style="table-layout:fixed">
+            <thead>
+              <tr>
+                <th style="width:16%;vertical-align:bottom;padding-bottom:.6rem;font-size:calc(.82rem * 1.1)">비교 기준</th>
+                <th style="width:28%;padding:.55rem .65rem">
+                  <div style="display:flex;flex-direction:column;gap:.25rem">
+                    <span class="chip chip--gray"
+                      style="align-self:flex-start;font-size:calc(.65rem * 1.1);padding:.12rem .45rem">💬 대화 상대</span>
+                    <span
+                      style="font-size:calc(.95rem * 1.1);font-weight:800;color:var(--ink);letter-spacing:-0.02em">ChatGPT
+                      Chat</span>
+                  </div>
+                </th>
+                <th style="width:28%;padding:.55rem .65rem">
+                  <div style="display:flex;flex-direction:column;gap:.25rem">
+                    <span class="chip"
+                      style="align-self:flex-start;font-size:calc(.65rem * 1.1);padding:.12rem .45rem;background:#ede9fe;color:#5b21b6">⚡
+                      업무 비서</span>
+                    <span
+                      style="font-size:calc(.95rem * 1.1);font-weight:800;color:var(--ink);letter-spacing:-0.02em">ChatGPT
+                      Work</span>
+                  </div>
+                </th>
+                <th
+                  style="width:28%;padding:.55rem .65rem;background:#eef5ff;border-top:3px solid var(--blue);border-right:1px solid #c9daff;border-left:1px solid #c9daff">
+                  <div style="display:flex;flex-direction:column;gap:.25rem">
+                    <span class="chip"
+                      style="align-self:flex-start;font-size:calc(.65rem * 1.1);padding:.12rem .45rem;background:var(--blue);color:#fff">🛠️
+                      메인 실습 도구</span>
+                    <span
+                      style="font-size:calc(.98rem * 1.1);font-weight:800;color:var(--blue-strong);letter-spacing:-0.02em">OpenAI
+                      Codex</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>쉽게 말하면</b></td>
+                <td>질문에 답하는 <b>대화 상대</b></td>
+                <td>업무를 처리하는 <b>AI 비서</b></td>
+                <td style="background:#f8fbff;border-left:1px solid #dce9fc;border-right:1px solid #dce9fc"><b
+                    style="color:var(--blue-strong)">프로그램을 만드는 AI 개발자</b></td>
+              </tr>
+              <tr>
+                <td><b>해주는 일</b></td>
+                <td>설명 · 아이디어 · 글 · 코드 예시</td>
+                <td>문서 작성 · 자료 정리 · 메시지 전송</td>
+                <td style="background:#f8fbff;border-left:1px solid #dce9fc;border-right:1px solid #dce9fc"><b>파일 제작 ·
+                    오류 수정 · 실행 확인</b></td>
+              </tr>
+              <tr>
+                <td><b>실제 행동</b></td>
+                <td>답변을 보여줌<br><span class="mini">적용은 내가 직접</span></td>
+                <td>연결한 업무 앱에서 처리<br><span class="mini">권한 승인이 필요</span></td>
+                <td style="background:#f8fbff;border-left:1px solid #dce9fc;border-right:1px solid #dce9fc"><b>내 프로젝트
+                    파일을 직접 수정</b><br><span class="mini" style="color:var(--blue-strong);font-weight:600">변경 승인이
+                    필요</span></td>
+              </tr>
+              <tr>
+                <td><b>작업 단위</b></td>
+                <td>1회성 <b>단발 대화</b><br><span class="mini">창 닫으면 파일·기억 리셋</span></td>
+                <td><b>클라우드 프로젝트</b><br><span class="mini">문서·파일을 프로젝트 단위로 보관</span></td>
+                <td style="background:#f8fbff;border-left:1px solid #dce9fc;border-right:1px solid #dce9fc"><b
+                    style="color:var(--blue-strong)">로컬 프로젝트 폴더</b><br><span class="mini"
+                    style="color:var(--blue-strong);font-weight:600">지정한 폴더 안에서 파일 직접 제작·수정</span></td>
+              </tr>
+              <tr>
+                <td><b>이럴 때 선택</b></td>
+                <td>묻고 배우고 싶을 때</td>
+                <td>반복 업무를 줄이고 싶을 때</td>
+                <td style="background:#f8fbff;border-left:1px solid #dce9fc;border-right:1px solid #dce9fc"><b
+                    style="color:var(--blue-strong)">웹사이트·프로그램을 만들 때</b></td>
+              </tr>
+              <tr>
+                <td><b>예시 요청</b></td>
+                <td>“이 내용을 쉽게 설명해 줘.”</td>
+                <td>“기획서를 만들고 팀에 공유해 줘.”</td>
+                <td style="background:#f8fbff;border-left:1px solid #dce9fc;border-right:1px solid #dce9fc"><b>“홈페이지를
+                    만들고 오류도 고쳐 줘.”</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note note--key">
+          <span class="note-ic">🔑</span>
+          <div><b>Chat은 알려주고, Work는 업무를 처리하고, Codex는 프로그램을 만든다.</b><br>오늘은 내 컴퓨터에 실제 결과물을 남겨야 하므로 <b>Codex</b>를 사용</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 10 (신규): Work & Codex에서 '프로젝트 폴더'가 필수인 3대 이유 -->
+    <section class="slide"
+      data-notes="이 장 3분. Chat과 Work/Codex의 결정적 차이를 설명합니다. Chat은 대화창을 닫으면 끝나지만, 실제 프로덕트를 만드는 Work와 Codex는 '프로젝트 폴더'를 만드는 것에서 모든 작업이 시작됩니다. AI에게 작업실을 지정해주는 3대 이유(맥락 유지, 안전 격리, 파일 구조 인지)를 강조합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">핵심 멘탈 모델</div>
+        <h2 class="s-title">Work &amp; Codex의 공통 전제 — <span class="hl">왜 '프로젝트 폴더'가 기본인가?</span></h2>
+        <p class="s-lead">1회성 대화창과 진짜 프로덕트 개발의 차이 — <strong>AI에게 전용 작업실(사무실)을 지정해야 하는 3대 이유</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid3" style="gap:.9rem">
+          <!-- 이유 1: 맥락 유지 -->
+          <div class="card card--tint" style="padding:1.1rem 1.2rem;border-top:3.5px solid var(--blue)">
+            <div class="chip" style="background:var(--blue);color:#fff;font-weight:700">이유 1 · 맥락 보존</div>
+            <div class="card-t" style="font-size:calc(.88rem * 1.1);color:var(--blue-strong);margin-top:.4rem">
+              대화가 끊겨도 유지되는 작업실
+            </div>
+            <ul class="ul ul--ok" style="font-size:calc(.75rem * 1.1);margin-top:.3rem">
+              <li>일반 Chat은 창 닫으면 과거 파일·기억 리셋</li>
+              <li>프로젝트 폴더를 지정하면 <b>새 대화를 열어도 폴더 안의 모든 파일과 진행 상태 100% 보존</b></li>
+              <li>어제 하던 작업을 오늘 그대로 이어감</li>
+            </ul>
+          </div>
+
+          <!-- 이유 2: 안전 격리 -->
+          <div class="card" style="padding:1.1rem 1.2rem;border-top:3.5px solid #64748b;background:#f8fafc">
+            <div class="chip chip--gray" style="font-weight:700">이유 2 · 안전 격리</div>
+            <div class="card-t" style="font-size:calc(.88rem * 1.1);color:var(--ink);margin-top:.4rem">
+              내 컴퓨터를 보호하는 안전 울타리
+            </div>
+            <ul class="ul" style="font-size:calc(.75rem * 1.1);margin-top:.3rem">
+              <li>AI에게 컴퓨터 전체를 열어주면 위험</li>
+              <li><i>“너는 오직 이 폴더 안에서만 일해”</i>라고 <b>안전한 작업 구역을 한정(Sandbox 격리)</b></li>
+              <li>바탕화면, 개인 문서를 건드리지 못하게 원천 차단</li>
+            </ul>
+          </div>
+
+          <!-- 이유 3: 전체 구조 인지 -->
+          <div class="card" style="padding:1.1rem 1.2rem;border-top:3.5px solid #1e293b;background:#f8fafc">
+            <div class="chip chip--gray" style="font-weight:700">이유 3 · 전체 인지</div>
+            <div class="card-t" style="font-size:calc(.88rem * 1.1);color:var(--ink);margin-top:.4rem">
+              파일 간의 유기적 관계 파악
+            </div>
+            <ul class="ul" style="font-size:calc(.75rem * 1.1);margin-top:.3rem">
+              <li>파일을 1개씩 대화창에 복붙할 필요 없음</li>
+              <li>폴더 안에 있는 <b>12개 파일의 이름, 확장자, 상대 경로를 AI가 스스로 한눈에 파악</b></li>
+              <li>여러 파일이 엮인 복잡한 작업도 자동 처리</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.8rem;background:#eef5ff;border-left:4px solid var(--blue)">
+          <span class="note-ic">💡</span>
+          <div style="font-size:calc(.78rem * 1.1)"><b>바이브코딩의 제1습관:</b><br>
+            <i>“Work나 Codex를 켜기 전에, <b>언제나 프로젝트 폴더를 먼저 정하거나 생성</b>한다.”</i> 이것이 프로덕트 빌더의 가장 기본 원칙입니다.
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Slide 11: 개념(Why) -->
+    <section class="slide"
+      data-notes="이 장 3분. Chat에서 Work(업무 처리)로 넘어가는 핵심 다리인 '플러그인'의 필요성을 설명합니다. 복사-붙여넣기 피로를 끝내고, AI에게 내 드라이브 문서를 직접 찾아 읽을 수 있는 안전한 통로를 놓아주는 개념입니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">도구 확장 · 플러그인 멘탈 모델</div>
+        <h2 class="s-title">플러그인 — AI에게 <span class="hl">외부 도구의 눈과 귀</span>를 달아주는 법</h2>
+        <p class="s-lead">대화창의 한계를 넘어 — <strong>복사-붙여넣기 없이 외부 서비스와 안전한 통로 연결하기</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <!-- 좌측: 대화창의 한계 -->
+          <div class="card card--tint" style="padding:1.1rem 1.2rem;gap:.65rem">
+            <div class="chip chip--gray" style="align-self:flex-start">🔒 기존 대화창(Chat)의 한계</div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:#c53030">
+              매번 긴 문서를 <b>복사해서 붙여넣어야 하는 피로</b>
+            </div>
+            <ul class="ul ul--no" style="font-size:calc(.78rem * 1.1)">
+              <li>창을 닫으면 이전 대화와 첨부 문서 맥락 유실</li>
+              <li>대화창 글자 수 한계로 대용량 업무 문서 처리 불가</li>
+              <li>내 구글 드라이브나 클라우드 문서에 스스로 접근 불가</li>
+            </ul>
+          </div>
+
+          <!-- 우측: 플러그인 연결 -->
+          <div class="card"
+            style="border-left:4px solid var(--blue);padding:1.1rem 1.2rem;gap:.65rem;background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff">🔌 플러그인(Connectors) 연결
+            </div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:var(--blue-strong)">
+              AI가 내 허락을 받고 <b>외부 문서를 직접 검색·조회</b>
+            </div>
+            <ul class="ul ul--ok" style="font-size:calc(.78rem * 1.1)">
+              <li>복사-붙여넣기 왕복 없이 <b>문서 제목만 말하면 즉시 검색</b></li>
+              <li>필요한 순간에만 외부 서비스의 정보를 안전하게 호출</li>
+              <li>2026 글로벌 AI 표준: <b>MCP(Model Context Protocol)</b>의 출발점</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.6rem">
+          <span class="note-ic">💡</span>
+          <div><b>플러그인의 핵심 가치:</b><br>
+            AI를 대화창 안에 가둬두지 않고, <b>내 업무 파일이 있는 곳으로 안전한 통로를 열어주는 것</b>입니다.
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Slide 12: 실행(How) -->
+    <section class="slide"
+      data-notes="이 장 4분. 실제 ChatGPT 웹에서 Google Drive를 찾아 연결하는 실습입니다. 좌측의 검색창에서 공식 제공자(By Google)를 확인하고, 우측의 권한 팝업에서 오직 '보기/읽기'만 허용되어 있는지 확인한 뒤 [허용]을 누르는 2단계 실천을 짚어줍니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">웹 플러그인 연결 실습</div>
+        <h2 class="s-title">Google Drive 찾기와 <span class="hl">안전한 권한 연결</span></h2>
+        <p class="s-lead">화면에서 확인할 2가지 — <strong>공식 제공자(By Google) 확인 후 '읽기 권한' 허용</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2" style="gap:1.1rem">
+          <!-- 좌측: STEP 1 도구 검색 -->
+          <div class="card" style="padding:1rem 1.15rem;gap:.65rem;border-radius:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="chip"
+                style="background:var(--surface-soft);border:1px solid var(--divider);font-weight:700;font-size:calc(.7rem * 1.1)">STEP
+                1 · 검색 &amp; 제공자 확인</span>
+              <span class="mini" style="color:var(--faint)">ChatGPT 플러그인/Apps</span>
+            </div>
+            <div class="card-t" style="font-size:calc(.88rem * 1.1);color:var(--ink)">
+              플러그인 목록에서 <b>Google Drive</b> 검색
+            </div>
+            <!-- 모의 검색 UI -->
+            <div
+              style="background:var(--surface-soft);border:1px solid var(--divider);border-radius:8px;padding:.5rem .7rem;display:flex;flex-direction:column;gap:.4rem">
+              <div
+                style="background:#fff;border:1px solid var(--divider);border-radius:6px;padding:.3rem .5rem;font-size:calc(.72rem * 1.1);display:flex;align-items:center;gap:.4rem;color:var(--body)">
+                <span>🔍</span> <span>Google Drive</span>
+              </div>
+              <div
+                style="background:#fff;border:1px solid #c9daff;border-radius:6px;padding:.45rem .6rem;display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-weight:700;font-size:calc(.76rem * 1.1);color:var(--ink)">Google Drive</div>
+                  <div class="mini" style="color:#2b5ce6;font-weight:600">✓ 공식 제공자: By Google</div>
+                </div>
+                <span
+                  style="background:var(--blue);color:#fff;font-size:calc(.68rem * 1.1);padding:.2rem .55rem;border-radius:4px;font-weight:700">+
+                  연결</span>
+              </div>
+            </div>
+            <ul class="ul" style="font-size:calc(.74rem * 1.1);margin:0">
+              <li>ChatGPT 웹 좌측 메뉴 또는 플러그인 스토어 열기</li>
+              <li>유사한 비공식 플러그인이 아닌 <b>'By Google'</b> 공식 확인</li>
+            </ul>
+          </div>
+
+          <!-- 우측: STEP 2 권한 확인 -->
+          <div class="card"
+            style="border-left:3.5px solid var(--blue);padding:1rem 1.15rem;gap:.65rem;border-radius:12px;background:#f8fbff">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="chip"
+                style="background:var(--blue);color:#fff;font-weight:700;font-size:calc(.7rem * 1.1)">STEP 2 · 접근
+                권한(Scope) 확인</span>
+              <span class="mini" style="color:var(--blue-strong);font-weight:700">🔒 최소 권한 검증</span>
+            </div>
+            <div class="card-t" style="font-size:calc(.88rem * 1.1);color:var(--blue-strong)">
+              + 클릭 후 <b>접근 권한 창</b> 꼼꼼히 확인
+            </div>
+            <!-- 모의 팝업 UI -->
+            <div
+              style="background:#fff;border:1.5px solid #b8d5ff;border-radius:8px;padding:.5rem .7rem;display:flex;flex-direction:column;gap:.35rem;box-shadow:0 2px 6px rgba(43,92,230,.05)">
+              <div class="mini" style="color:var(--faint);font-weight:700">Google 계정 액세스 요청</div>
+              <div
+                style="background:#f8fbff;border-radius:4px;padding:.3rem .5rem;font-size:calc(.72rem * 1.1);color:#1e40af;display:flex;align-items:center;gap:.3rem">
+                <span>👁️</span> <span><b>드라이브 파일 검색 및 내용 보기</b> (안전)</span>
+              </div>
+              <div
+                style="background:#fff5f5;border-radius:4px;padding:.3rem .5rem;font-size:calc(.72rem * 1.1);color:#991b1b;display:flex;align-items:center;gap:.3rem">
+                <span>🚫</span> <span><b>파일 삭제·수정·공유 권한 없음</b> (필수 확인)</span>
+              </div>
+            </div>
+            <ul class="ul ul--ok" style="font-size:calc(.74rem * 1.1);margin:0">
+              <li>오직 <b>'읽기/보기' 권한만</b> 있는지 체크</li>
+              <li>확인 완료 후 <b>[허용 / 계속]</b> 클릭해 안전하게 연결</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 하단 3단계 조작 바 -->
+        <div class="note note--key"
+          style="margin-top:.6rem;padding:.5rem .9rem;display:flex;align-items:center;gap:.8rem">
+          <span class="note-ic" style="font-size:1.15rem">💡</span>
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:calc(.76rem * 1.1);width:100%">
+            <span style="font-weight:700;color:var(--blue-strong)">실습 연결 3단계:</span>
+            <span style="background:#fff;padding:.15rem .5rem;border-radius:4px;border:1px solid #c9daff"><b>① 플러그인 메뉴
+                열기</b></span>
+            <span>➔</span>
+            <span style="background:#fff;padding:.15rem .5rem;border-radius:4px;border:1px solid #c9daff"><b>② 'By
+                Google' 확인 후 [+] 클릭</b></span>
+            <span>➔</span>
+            <span style="background:#fff;padding:.15rem .5rem;border-radius:4px;border:1px solid #c9daff"><b>③ '보기' 권한
+                확인 후 [허용]</b></span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Slide 13: 원칙(Rule) -->
+    <section class="slide"
+      data-notes="이 장 3분. 외부 서비스 연동 시 가장 중요한 보안 원칙인 '최소 권한의 원칙'을 설명합니다. AI에게 삭제나 수정 권한을 주었을 때 일어날 수 있는 사고 시나리오를 대비시켜 왜 오직 '읽기'만 허용해야 하는지 당위성을 각인시킵니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">플러그인 보안 가드레일</div>
+        <h2 class="s-title">읽기 · 수정 · 전송 · 삭제는 <span class="hl">서로 다른 권한</span></h2>
+        <p class="s-lead">행동 권한의 분리 — <strong>문서 검색과 요약에는 오직 '보기·읽기' 하나면 충분합니다</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <!-- 좌측: 권한 4단계 매트릭스 -->
+          <div class="card" style="padding:1rem 1.1rem">
+            <div class="card-t">🔑 권한 4단계와 위험도 기준</div>
+            <table class="tbl" style="margin-top:.4rem">
+              <thead>
+                <tr>
+                  <th style="width:28%">권한</th>
+                  <th style="width:44%">의미</th>
+                  <th style="width:28%">위험도</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:#f8fbff">
+                  <td><b>보기·읽기</b></td>
+                  <td>파일 검색 및 내용 조회</td>
+                  <td><span class="chip" style="background:#2b5ce6;color:#fff">안전 (오늘 범위)</span></td>
+                </tr>
+                <tr>
+                  <td><b>만들기·수정</b></td>
+                  <td>문서 내용 변경, 새 파일 생성</td>
+                  <td><span class="chip chip--gray">원본 훼손 주의</span></td>
+                </tr>
+                <tr>
+                  <td><b>전송·공유</b></td>
+                  <td>외부 발송, 타인 권한 공유</td>
+                  <td><span class="chip chip--gray">외부 유출 주의</span></td>
+                </tr>
+                <tr style="background:#fff5f5;color:var(--coral)">
+                  <td><b>삭제</b></td>
+                  <td>파일 영구 제거</td>
+                  <td><span class="chip" style="background:#c53030;color:#fff">절대 금지</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 우측: 과도한 권한 허용 시 사고 시나리오 -->
+          <div class="card" style="border-left:3.5px solid #c53030;padding:1rem 1.1rem;background:#fffaf8">
+            <div class="card-t" style="color:#c53030">🚨 과도한 권한 허용 시 실제 사고 시나리오</div>
+            <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem">
+              <div style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:.5rem .7rem">
+                <div style="font-weight:700;font-size:calc(.75rem * 1.1);color:#c53030">😱 시나리오 A: '삭제' 권한 허용 시</div>
+                <div style="font-size:calc(.71rem * 1.1);color:var(--body);line-height:1.4;margin-top:.2rem">
+                  AI가 "중복 문서를 정리해줘"라는 말을 오해하여, 드라이브 안의 <b>중요한 원본 업무 문서를 영구 삭제</b>할 위험 발생
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #fecaca;border-radius:8px;padding:.5rem .7rem">
+                <div style="font-weight:700;font-size:calc(.75rem * 1.1);color:#c53030">😱 시나리오 B: '수정' 권한 허용 시</div>
+                <div style="font-size:calc(.71rem * 1.1);color:var(--body);line-height:1.4;margin-top:.2rem">
+                  백업 없이 계약서나 견적서의 <b>원본 수치를 AI 마음대로 덮어써</b> 원본 복구가 불가능해질 위험 발생
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.6rem">
+          <span class="note-ic">🔒</span>
+          <div><b>글로벌 AI 보안 표준: 최소 권한의 원칙 (Principle of Least Privilege)</b><br>
+            AI 에이전트에게 일을 맡길 때는 <b>"현재 작업에 꼭 필요한 최소한의 읽기 권한"</b>만 부여하는 것이 철칙입니다.
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide" data-notes="연결 후 읽기 요청을 한 번 실행한다. 문서 제목을 정확히 지정하고, 찾은 문서가 맞는지 대조하도록 안내한다.">
+      <div class="s-head">
+        <div class="s-eyebrow">플러그인 사용 실습</div>
+        <h2 class="s-title"><span class="hl">일상 언어</span>로 요청하고 원본과 대조하기</h2>
+        <p class="s-lead">연결된 Google Drive에 요청 — <strong>문서 제목을 명확히 말하고, 요약 결과를 원본과 직접 대조</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2" style="gap:1.1rem">
+          <!-- 좌측: 내가 보낼 프롬프트 창 UI (다크 콘솔 프롬프트 상자 적용) -->
+          <div style="display:flex;flex-direction:column;gap:.6rem">
+            <div data-copy="내 Google Drive에서 '1일차_플러그인_실습문서'를 찾아서, 그 안에 적힌 핵심 내용 3가지를 3줄로 요약해 줘."
+              class="prompt prompt--console">
+              <!-- 콘솔 상단 윈도우 바 -->
+              <div
+                style="background:#1e293b;padding:.45rem .85rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155">
+                <div style="display:flex;align-items:center;gap:.55rem">
+                  <div style="display:flex;gap:.35rem">
+                    <span style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block"></span>
+                    <span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block"></span>
+                    <span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block"></span>
+                  </div>
+                  <span
+                    style="color:#94a3b8;font-size:.74rem;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:0.04em">CHATGPT
+                    PROMPT</span>
+                  <span
+                    style="background:#0284c7;color:#fff;font-size:.66rem;font-weight:700;padding:.1rem .4rem;border-radius:4px">⌨️
+                    실습 입력창 복사용</span>
+                </div>
+                <!-- 우측 단축키 안내 -->
+                <div style="margin-right:4.6rem;color:#94a3b8;font-size:.72rem">
+                  전송: <kbd
+                    style="background:#334155;color:#fff;padding:.12rem .35rem;border-radius:3px;border:1px solid #475569">Enter</kbd>
+                </div>
+              </div>
+              <!-- 프롬프트 본문 텍스트 -->
+              <div
+                style="padding:.85rem 1.1rem;font-size:.85rem;line-height:1.6;color:#f8fafc;font-weight:500;font-family:var(--f)">
+                “내 Google Drive에서 <b>'1일차_플러그인_실습문서'</b>를 찾아서,<br>
+                그 안에 적힌 핵심 내용 3가지를 <b>3줄로 요약</b>해 줘.”
+              </div>
+            </div>
+
+            <!-- 프롬프트 지휘 핵심 포인트 카드 -->
+            <div class="card" style="padding:.7rem .95rem;background:#f8fafc;border-left:3.5px solid var(--blue)">
+              <div class="card-t" style="font-size:calc(.76rem * 1.1);color:var(--blue-strong)">💡 프롬프트 작성 핵심 포인트</div>
+              <ul class="ul ul--ok" style="font-size:calc(.72rem * 1.1);margin-top:.25rem">
+                <li>찾을 파일의 <b>정확한 파일명</b>을 따옴표 안에 적어주기</li>
+                <li>읽기(Search/Read) 요청만 하고, 수정이나 이동 명령은 배제</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 우측: 결과 확인 및 눈 대조 체크리스트 -->
+          <div class="card"
+            style="border-left:3.5px solid var(--blue);padding:1rem 1.15rem;gap:.55rem;border-radius:12px;background:#f8fbff">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="chip" style="background:var(--blue);color:#fff;font-weight:700">👁️ 3단계 눈 대조 체크</span>
+              <span class="mini" style="color:var(--blue-strong);font-weight:700">인간의 최종 검증</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.3rem">
+              <div
+                style="background:#fff;border:1px solid #bfdbfe;border-radius:6px;padding:.4rem .6rem;display:flex;align-items:center;gap:.5rem;font-size:calc(.74rem * 1.1)">
+                <span style="color:var(--blue-strong);font-weight:800">✓ 1.</span>
+                <span>AI가 찾아낸 문서의 <b>제목</b>이 내가 요청한 문서와 일치하는가?</span>
+              </div>
+              <div
+                style="background:#fff;border:1px solid #bfdbfe;border-radius:6px;padding:.4rem .6rem;display:flex;align-items:center;gap:.5rem;font-size:calc(.74rem * 1.1)">
+                <span style="color:var(--blue-strong);font-weight:800">✓ 2.</span>
+                <span>3줄 요약 내용이 <b>실제 원본 문서의 핵심</b>을 담고 있는가?</span>
+              </div>
+              <div
+                style="background:#fff;border:1px solid #bfdbfe;border-radius:6px;padding:.4rem .6rem;display:flex;align-items:center;gap:.5rem;font-size:calc(.74rem * 1.1)">
+                <span style="color:var(--blue-strong);font-weight:800">✓ 3.</span>
+                <span>없는 내용을 지어낸 <b>환각(Hallucination)</b>은 없는가?</span>
+              </div>
+            </div>
+            <div class="mini" style="color:var(--blue-strong);font-weight:600;margin-top:.2rem">
+              * 3가지가 모두 확인되면 플러그인 첫 실습 완료!
+            </div>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.6rem">
+          <span class="note-ic">💡</span>
+          <div><b>플러그인 실습의 완성:</b><br>
+            AI가 알아서 찾아온 답변도, <b>내 눈으로 원본과 1회 대조하는 30초 검증</b>을 거칠 때 진짜 내 업무 도구가 됩니다.
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 4분. 오전의 웹 환경과 오후의 로컬 환경을 잇는 가장 중요한 '결정적 계기(Turning Point)'입니다. 수강생들이 겪었던 '오류 복붙 ➔ 수정 복붙 ➔ 또 오류'의 피로감을 건드리며, 웹 환경은 내 컴퓨터 파일을 직접 만질 수 없는 태생적 한계(샌드박스)가 있음을 짚어줍니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">웹 환경의 태생적 한계</div>
+        <h2 class="s-title">ChatGPT로 코딩할 때 <span class="hl">답답했던 진짜 이유</span></h2>
+        <p class="s-lead">피로도 100% — <strong>내 컴퓨터 파일을 직접 건드릴 수 없어 생겼던 '복붙 왕복 6단계'</strong></p>
+      </div>
+      <div class="s-body">
+        <!-- 6단계 복붙 지옥 타임라인 UI -->
+        <div
+          style="background:#fff5f5;border:1.5px solid #fed7d7;border-radius:12px;padding:.85rem 1rem;margin-bottom:.8rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+            <span style="font-weight:800;color:#c53030;font-size:calc(.78rem * 1.1)">😫 우리가 겪었던 악몽의 복붙 6단계 루프</span>
+            <span class="chip" style="background:#feb2b2;color:#9b2c2c;font-weight:700">웹 브라우저의 한계</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(6, 1fr);gap:.4rem;text-align:center">
+            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:.4rem .2rem">
+              <div style="font-size:.9rem">⚠️</div>
+              <div style="font-weight:700;font-size:calc(.7rem * 1.1);color:#c53030">① 오류 발생</div>
+              <div class="mini" style="color:var(--faint)">내 화면에 뜸</div>
+            </div>
+            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:.4rem .2rem">
+              <div style="font-size:.9rem">📋</div>
+              <div style="font-weight:700;font-size:calc(.7rem * 1.1);color:var(--body)">② 메시지 복사</div>
+              <div class="mini" style="color:var(--faint)">Ctrl + C</div>
+            </div>
+            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:.4rem .2rem">
+              <div style="font-size:.9rem">💬</div>
+              <div style="font-weight:700;font-size:calc(.7rem * 1.1);color:var(--body)">③ 챗봇에 전달</div>
+              <div class="mini" style="color:var(--faint)">Ctrl + V</div>
+            </div>
+            <div style="background:#fff;border:1px solid #90cdf4;border-radius:8px;padding:.4rem .2rem">
+              <div style="font-size:.9rem">🤖</div>
+              <div style="font-weight:700;font-size:calc(.7rem * 1.1);color:var(--blue)">④ AI 코드 수정</div>
+              <div class="mini" style="color:var(--faint)">긴 코드 출력</div>
+            </div>
+            <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:.4rem .2rem">
+              <div style="font-size:.9rem">📥</div>
+              <div style="font-weight:700;font-size:calc(.7rem * 1.1);color:var(--body)">⑤ 새 코드 복사</div>
+              <div class="mini" style="color:var(--faint)">우측상단 버튼</div>
+            </div>
+            <div style="background:#fff;border:1px solid #feb2b2;border-radius:8px;padding:.4rem .2rem">
+              <div style="font-size:.9rem">🔄</div>
+              <div style="font-weight:700;font-size:calc(.7rem * 1.1);color:#c53030">⑥ 덮어쓰기</div>
+              <div class="mini" style="color:#c53030;font-weight:700">또 오류 반복!</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid2" style="gap:1rem">
+          <div class="card card--tint" style="padding:.9rem 1.1rem">
+            <div class="card-t" style="color:#c53030">🔒 웹 ChatGPT는 '격리된 섬(Sandbox)'</div>
+            <div style="font-size:calc(.76rem * 1.1);color:var(--body);line-height:1.5;margin-top:.2rem">
+              브라우저 보안상 ChatGPT는 <b>내 컴퓨터의 파일을 직접 열거나 수정할 권한</b>이 없습니다. 그래서 중간에서 인간이 '복붙 배달부' 역할을 해야만 했습니다.
+            </div>
+          </div>
+          <div class="card" style="border-left:4px solid var(--blue);padding:.9rem 1.1rem;background:#f8fbff">
+            <div class="card-t" style="color:var(--blue-strong)">🚀 오후 실습: Codex는 내 컴퓨터에서 직접 동작</div>
+            <div style="font-size:calc(.76rem * 1.1);color:var(--body);line-height:1.5;margin-top:.2rem">
+              Codex 데스크톱 앱은 내 폴더에 직접 접근하여 <b>AI가 스스로 파일을 읽고, 수정하고, 실행</b>합니다. 인간은 오직 '승인'만 누르면 끝납니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 3분. 웹에서 다 되는 시대에 왜 굳이 로컬 환경으로 내려오는지 당위성을 설명합니다. 2026년 글로벌 개발 트렌드인 Local-first Agentic Coding을 짚어주고, 진짜 내 자산(Asset)은 클라우드 임시창이 아니라 내 컴퓨터 하드디스크에 쌓인다는 점을 각인시킵니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">실습 환경 전환</div>
+        <h2 class="s-title">왜 굳이 <span class="hl">내 컴퓨터(로컬)</span>에서 작업하나요?</h2>
+        <p class="s-lead">웹 도구의 편의성 인정 — <strong>그래도 진짜 결과물은 로컬 디스크에서 완성됩니다</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <div class="card card--tint" style="padding:1.1rem 1.2rem;gap:.65rem">
+            <div class="chip chip--gray" style="align-self:flex-start">☁️ 웹 AI 플랫폼의 한계</div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:var(--ink)">가상 환경에 갇힌 임시 코드</div>
+            <ul class="ul ul--no" style="font-size:calc(.78rem * 1.1)">
+              <li>브라우저 닫히면 작업 세션 증발 위험</li>
+              <li>내 PC의 실제 파일(문서, 시트, 이미지)을 직접 제어 불가</li>
+              <li>실제 서비스 배포나 현업 프로젝트 확장 시 한계 봉착</li>
+            </ul>
+          </div>
+          <div class="card"
+            style="border-left:4px solid var(--blue);padding:1.1rem 1.2rem;gap:.65rem;background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff">💻 내 컴퓨터(로컬) 작업의 힘</div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:var(--blue-strong)">진짜 영구 소유하는 내 작업물</div>
+            <ul class="ul ul--ok" style="font-size:calc(.78rem * 1.1)">
+              <li>내가 지정한 폴더에 <b>실제 파일이 영구 보관</b>됨</li>
+              <li>윈도우 탐색기로 실시간 파일 생성·수정 눈 검증 가능</li>
+              <li>2026 트렌드: <b>Local-first Agentic Coding</b>의 표준 방식 체득</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 4분. 실제 Codex 데스크톱 앱의 3구역 화면과 3가지 핵심 조작을 통합 설명합니다. 입력창 바로 위의 [📁 프로젝트 폴더 선택] 버튼과 중앙의 [Approve] 승인 버튼, 그리고 대화가 꼬였을 때 쓰는 [+ New Chat] 리셋 버튼의 위치를 명확히 짚어줍니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">Codex 데스크톱 앱 환경</div>
+        <h2 class="s-title">Codex 앱 화면의 <span class="hl">3구역과 핵심 조작</span></h2>
+        <p class="s-lead">오늘 필요한 조작 3개 — <strong>폴더 지정 · 말하기 · [Approve] 승인 클릭</strong></p>
+      </div>
+      <div class="s-body s-body--tight s-body--dense">
+        <div class="grid-2-1">
+          <!-- 좌측 2열: 앱 모의 화면 -->
+          <div class="mock">
+            <div class="mock-bar">
+              <div class="mock-dots"><span></span><span></span><span></span></div>
+              <div class="mock-title">OpenAI Codex — day01-folder-practice-홍길동</div>
+              <div class="mock-badge"
+                style="background:#eef5ff;color:var(--blue);font-weight:700;font-size:calc(.68rem * 1.1);padding:.15rem .5rem;border-radius:4px">
+                [+ New Chat] 리셋
+              </div>
+            </div>
+            <div class="mock-body">
+              <div class="mock-pane">
+                <div class="pane-h">① 작업 공간 경계</div>
+                <div class="pane-item" style="color:var(--blue-strong);font-weight:700">📁 01_문서/</div>
+                <div class="pane-item" style="color:var(--blue-strong);font-weight:700">📁 02_이미지/</div>
+                <div class="pane-item" style="color:var(--blue-strong);font-weight:700">📁 03_표/</div>
+                <div class="pane-item">📄 견적서.csv</div>
+                <div class="pane-item">📄 정리기록.md</div>
+              </div>
+              <div class="mock-pane" style="flex:1.4">
+                <div class="pane-h">② 작업 미리보기 (Diff)</div>
+                <div style="font-family:monospace;font-size:calc(.7rem * 1.1);color:var(--blue);padding:.25rem 0">
+                  + 📁 01_문서/강의안내문.pdf<br>
+                  + 📁 03_표/견적서.csv
+                </div>
+                <div
+                  style="margin-top:.4rem;padding:.3rem;background:#eef5ff;border-radius:4px;border:1px solid #bfdbfe;text-align:center">
+                  <span style="font-weight:800;color:var(--blue-strong);font-size:calc(.74rem * 1.1)">[Approve / 승인]
+                    버튼</span>
+                </div>
+              </div>
+              <div class="mock-pane" style="flex:1.2">
+                <div class="pane-h">③ AI 지휘 창 (Composer)</div>
+                <div class="pane-item" style="color:var(--faint)">📁 [프로젝트 폴더 선택]</div>
+                <div
+                  style="background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:.4rem;font-size:calc(.68rem * 1.1);margin-top:.3rem">
+                  Ask Mode: "파일 12개 분류 계획을 표로 먼저 보여줘"
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 우측 1열: 3대 핵심 조작 -->
+          <div class="stack" style="gap:.45rem">
+            <div class="card" style="padding:.65rem .85rem;border-left:3.5px solid var(--blue)">
+              <div class="card-t" style="font-size:calc(.78rem * 1.1)">① 작업 폴더 지정</div>
+              <div class="card-p" style="font-size:calc(.7rem * 1.1)">입력창 위 <b>[📁 폴더 선택]</b>으로 내가 복사한 실습 폴더만 지정</div>
+            </div>
+            <div class="card" style="padding:.65rem .85rem;border-left:3.5px solid var(--blue)">
+              <div class="card-t" style="font-size:calc(.78rem * 1.1);color:var(--blue-strong)">② Ask Mode로 지휘</div>
+              <div class="card-p" style="font-size:calc(.7rem * 1.1)">바로 바꾸지 말고 <b>"계획을 표로 먼저 보여줘"</b> 요청</div>
+            </div>
+            <div class="card" style="padding:.65rem .85rem;border-left:3.5px solid var(--blue);background:#f8fbff">
+              <div class="card-t" style="font-size:calc(.78rem * 1.1);color:var(--blue-strong)">③ [Approve] 승인 클릭</div>
+              <div class="card-p" style="font-size:calc(.7rem * 1.1)">미리보기를 검증한 뒤 내가 직접 <b>승인 버튼</b> 클릭</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 3분. 초보자가 가장 이해 못 하는 개념이라 비유로만 설명한다. '왜 아까는 잘하더니 갑자기 바보가 됐지?'라는 질문의 답이 이 장이다. 40~50턴은 절대적 수치가 아니라 신호라는 점, 대화가 꼬이면 미련 없이 [새 대화] 버튼을 누르라는 게 실전 지침.">
+      <div class="s-head">
+        <div class="s-eyebrow">Codex 핵심 메커니즘</div>
+        <h2 class="s-title">AI의 기억은 <span class="hl">유한함</span> — 화이트보드 비유</h2>
+        <p class="s-lead">“아까는 잘했는데 왜 갑자기 엉뚱한 소리를 하지?” — <strong>대화가 길어지면 발생하는 맥락 유실(Context Drift)</strong></p>
+      </div>
+      <div class="s-body">
+        <!-- 화이트보드 채워짐 시각 게이지 바 -->
+        <div
+          style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;padding:.7rem .9rem;margin-bottom:.8rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+            <span style="font-weight:700;font-size:calc(.75rem * 1.1);color:var(--ink)">🧠 AI 컨텍스트 윈도우(기억 공간) 채워짐
+              정도</span>
+            <span class="mini" style="color:#c53030;font-weight:700">40~50턴 이상 대화 시 주의!</span>
+          </div>
+          <div style="background:#e2e8f0;border-radius:6px;height:24px;display:flex;overflow:hidden">
+            <div
+              style="width:30%;background:#94a3b8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:calc(.68rem * 1.1);font-weight:700">
+              1~15턴 (명쾌함)</div>
+            <div
+              style="width:40%;background:#64748b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:calc(.68rem * 1.1);font-weight:700">
+              16~35턴 (기억 누적)</div>
+            <div
+              style="width:30%;background:#c53030;color:#fff;display:flex;align-items:center;justify-content:center;font-size:calc(.68rem * 1.1);font-weight:700">
+              40턴+ (과거 망각 경고!)</div>
+          </div>
+        </div>
+
+        <div class="grid3" style="gap:.9rem">
+          <div class="card" style="padding:.9rem 1rem">
+            <div class="chip chip--gray" style="align-self:flex-start">1. 화이트보드 비유</div>
+            <div class="card-t" style="font-size:calc(.85rem * 1.1);color:var(--ink)">대화창 = 칠판 크기 제한</div>
+            <div style="font-size:calc(.74rem * 1.1);color:var(--body);line-height:1.45;margin-top:.2rem">
+              칠판이 가득 차면 AI는 <b>맨 위(처음 지시한 규칙)부터 지우면서</b> 새로운 말을 적습니다.
+            </div>
+          </div>
+
+          <div class="card" style="padding:.9rem 1rem;background:#fff5f5;border-color:#fed7d7">
+            <div class="chip" style="align-self:flex-start;background:#fed7d7;color:#9b2c2c;font-weight:700">2. 위험 신호
+            </div>
+            <div class="card-t" style="font-size:calc(.85rem * 1.1);color:#c53030">처음 약속을 어길 때</div>
+            <div style="font-size:calc(.74rem * 1.1);color:var(--body);line-height:1.45;margin-top:.2rem">
+              처음에 정한 규칙을 무시하거나 엉뚱한 폴더를 건드리면 <b>칠판이 꽉 찼다는 명백한 신호</b>입니다.
+            </div>
+          </div>
+
+          <div class="card" style="padding:.9rem 1rem;border-left:3.5px solid var(--blue);background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff;font-weight:700">3. 가장 강력한
+              해결책</div>
+            <div class="card-t" style="font-size:calc(.85rem * 1.1);color:var(--blue-strong)">[+ New Chat] 칠판 지우기</div>
+            <div style="font-size:calc(.74rem * 1.1);color:var(--body);line-height:1.45;margin-top:.2rem">
+              말싸움하지 말고 <b>과감하게 [+ 새 대화]</b>를 눌러 칠판을 깨끗이 닦고 핵심만 다시 전달하세요.
+            </div>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.6rem">
+          <span class="note-ic">💡</span>
+          <div><b>실전 꿀팁:</b><br>
+            코드가 꼬이거나 AI가 말을 안 들을 땐 붙잡고 늘어지지 말고 <b>[+ New Chat] 버튼을 누르는 것이 가장 빠르고 현명한 해결책</b>입니다.
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide title-slide" style="justify-content:center;padding:4.5rem 5.5rem"
+      data-notes="이 장 1분. 오후 메인 실습에 돌입합니다. 파일 12개를 손으로 하나도 건드리지 않고, 말 한마디와 승인 버튼으로 6개 폴더에 완벽히 분류하는 쾌감을 예고합니다.">
+      <div class="s-head" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem">
+          <span class="chip"
+            style="background:var(--blue);color:#fff;font-weight:700;font-size:calc(.75rem * 1.1);padding:.25rem .65rem;border-radius:6px">PART
+            2</span>
+          <span style="color:var(--faint);font-size:calc(.85rem * 1.1);font-weight:600">로컬 Codex 메인 실습</span>
+        </div>
+        <h1 class="s-title"
+          style="font-size:calc(2.6rem * 1.1);font-weight:800;line-height:1.25;letter-spacing:-0.03em;color:var(--ink);margin:0 0 1.2rem 0">
+          웜업 실습<br>
+          <span class="hl">폴더 스마트 자동 분류</span>
+        </h1>
+        <p class="s-lead" style="font-size:calc(1.15rem * 1.1);color:var(--body);line-height:1.6;margin:0">
+          마우스 드래그 대신 — <strong>말(자연어)로 지휘하고, 승인(Approve)으로 안전하게 완성</strong>
+        </p>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 3분. 실습 직전 수강생들에게 완성 결과를 미리 보여주어 기대감을 고조시킵니다. 어질러진 12개 파일이 깔끔한 6개 폴더로 정돈되고, 마지막에 정리기록.md까지 자동으로 남는 Before/After를 대조합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">실습 미리보기</div>
+        <h2 class="s-title">실습 후 결과 — <span class="hl">Before vs After</span></h2>
+        <p class="s-lead">12개 뒤섞인 파일 ➔ <strong>6개 규칙 폴더 자동 분류 &amp; <code>정리기록.md</code> 생성</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <!-- Before -->
+          <div class="card card--tint" style="padding:1rem 1.15rem;background:#fffaf9">
+            <span class="chip" style="background:#fed7d7;color:#9b2c2c;font-weight:700">Before (시작 상태)</span>
+            <div class="card-t" style="color:#c53030;font-size:calc(.85rem * 1.1);margin-top:.3rem">어질러진 단일 폴더 (파일 12개)
+            </div>
+            <div
+              style="font-family:monospace;font-size:calc(.72rem * 1.1);color:var(--faint);line-height:1.5;margin-top:.3rem;background:#fff;padding:.5rem;border-radius:6px;border:1px solid #fed7d7">
+              📄 2026수업자료 (확장자 없음 - 함정 1)<br>
+              📄 새파일(1).docx (이름 모호 - 함정 2)<br>
+              📄 강의계획서_최종_진짜최종.docx (버전 혼란 - 함정 3)<br>
+              📄 견적서.csv (문서? 표? - 함정 4)<br>
+              📄 강의안내문.pdf / 발표자료_표지.png<br>
+              📄 수강생명단_v1.xlsx / 수업자료_전체.zip... (총 12개)
+            </div>
+          </div>
+          <!-- After -->
+          <div class="card" style="border-left:4px solid var(--blue);padding:1rem 1.15rem;background:#f8fbff">
+            <span class="chip" style="background:var(--blue);color:#fff;font-weight:700">After (완료 상태)</span>
+            <div class="card-t" style="color:var(--blue-strong);font-size:calc(.85rem * 1.1);margin-top:.3rem">체계적인 6개
+              폴더와 기록 일지
+            </div>
+            <div
+              style="font-family:monospace;font-size:calc(.72rem * 1.1);color:var(--blue-strong);line-height:1.5;margin-top:.3rem;background:#fff;padding:.5rem;border-radius:6px;border:1px solid #bfdbfe">
+              📁 01_문서/ (docx, txt)<br>
+              📁 02_이미지/ (png, jpg)<br>
+              📁 03_표/ (xlsx, <b>csv 포함</b>)<br>
+              📁 04_PDF/, 📁 05_압축/<br>
+              📁 99_보류/ (확장자 없음, 이름 모호 격리)<br>
+              📝 <b>정리기록.md (결과 일지 완성!)</b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 4분. 안전 제0원칙인 '승인 후 실행'을 점검합니다. 완전 초보자 대상이므로 검은 화면(터미널)은 전혀 쓰지 않고, 데스크톱 앱에서 제공하는 마우스 [Approve] 버튼과 [Reject] 버튼만으로 100% 안전하게 통제한다는 점을 강조하여 심리적 안전감을 줍니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">0단계 · 시작 전 필수</div>
+        <h2 class="s-title">🛡️ 안전 제0원칙 — <span class="hl">승인 후 실행(Approve)</span> 확인</h2>
+        <p class="s-lead">내 컴퓨터 파일은 내 허락 없이는 1바이트도 바뀌지 않습니다 — <strong>초보자를 위한 100% 마우스 안전장치</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2">
+          <!-- 좌측: [Approve / 승인] 안전장치 -->
+          <div class="card" style="border-left:4px solid var(--blue);padding:1.1rem 1.25rem;background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff;font-weight:700">안전장치 1 ·
+              승인 클릭</div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:var(--blue-strong);margin-top:.3rem">
+              기본 제공되는 <b>[Approve] 승인 버튼</b>
+            </div>
+            <ul class="ul ul--ok" style="font-size:calc(.78rem * 1.1)">
+              <li>AI가 제안한 변경사항(Diff)이 중앙에 초록/빨강으로 표시됨</li>
+              <li>내가 마우스로 <b>[Approve / 승인] 버튼을 누르기 전까지는 파일 절대 불변</b></li>
+              <li>어려운 기술 몰라도 마우스 클릭 한 번으로 안전하게 최종 결정</li>
+            </ul>
+          </div>
+
+          <!-- 우측: [Reject / 거절] 및 대화형 재지시 -->
+          <div class="card card--tint" style="padding:1.1rem 1.25rem;border-left:4px solid #64748b">
+            <div class="chip chip--gray" style="align-self:flex-start">안전장치 2 · 거절 &amp; 수정</div>
+            <div class="card-t" style="font-size:calc(.9rem * 1.1);color:var(--ink);margin-top:.3rem">
+              마음에 안 들면 언제든 <b>거절 및 재지시</b>
+            </div>
+            <ul class="ul" style="font-size:calc(.78rem * 1.1)">
+              <li>계획에 이상이 있으면 <b>[Reject / 거절]</b>을 눌러 즉시 취소</li>
+              <li>대화창에 <i>“그 파일은 03_표로 바꿔줘”</i>라고 말하면 AI가 계획 수정</li>
+              <li>내 컴퓨터가 망가질 위험 없이 <b>100% 안전한 심리적 안전망</b> 확보</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.65rem">
+          <span class="note-ic">🔒</span>
+          <div><b>초보자를 위한 약속:</b><br>
+            어려운 기술이나 복잡한 코딩 지식은 전혀 필요 없습니다. <b>오직 마우스 클릭과 일상적인 한국어로만 100% 안전하게 지휘</b>합니다.
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 4분. 오늘 실습 전체를 관통하는 뼈대. 왼쪽 열은 내가 하는 말, 오른쪽 열은 Codex의 응답 — 위치로 구분된다고 먼저 짚는다. 그다음 화면에서 유일하게 색이 채워진 가운데 초록 밴드를 가리키며 '여기가 여러분이 일하는 유일한 지점'이라고 강조. 1단계와 2단계 사이를 이 게이트가 가로막고 있다는 점이 핵심.">
+      <div class="s-head">
+        <div class="s-eyebrow">핵심 원칙</div>
+        <h2 class="s-title">2단계 소통 원칙 — <span class="hl">Ask → 검증 → Code</span></h2>
+        <p class="s-lead">바로 "해줘" 금지 — <strong>계획 수령 → 내 눈으로 검증 → 최종 실행 승인</strong></p>
+      </div>
+      <div class="s-body s-body--tight s-body--dense">
+        <div class="vflow" style="gap:.5rem">
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">1</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard" style="padding:.5rem .8rem;background:#f8fbff;border-radius:8px">
+              <div class="vlabel" style="color:var(--blue-strong)">STEP 1: Ask Mode (지휘관의 요청)</div>
+              <div class="vtext" style="font-weight:600">“파일 12개 분류 계획표를 표로 먼저 보여줘. 아직 파일은 건드리지 마.”</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum ok" style="background:var(--blue)">2</div>
+              <div class="vline"></div>
+            </div>
+            <div class="vcard" style="background:#eef5ff;padding:.65rem .85rem;border-radius:8px">
+              <div class="vlabel" style="color:var(--blue-strong);font-weight:800">★ GATE: 인간의 30초 검증 (실제 일하는 유일한 지점!)
+              </div>
+              <div class="vtext">AI 계획표 대조 ➔ 견적서.csv가 03_표로 갔는가? ➔ 이상 없으면 승인!</div>
+            </div>
+          </div>
+          <div class="vitem">
+            <div class="vrail">
+              <div class="vnum">3</div>
+            </div>
+            <div class="vcard" style="padding:.5rem .8rem;background:#f8fafc;border-radius:8px">
+              <div class="vlabel" style="color:#1e293b">STEP 2: Code / Edit Mode (실제 디스크 반영)</div>
+              <div class="vtext">인간의 [Approve] 승인 클릭 ➔ Codex가 실제 폴더 생성 및 12개 파일 이동 실행!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="slide"
+      data-notes="이 장 3분. 상단 코랄 배지 3개(확장자 없음, 이름 모호, 표 확장자/버전 중복)를 핵심 교육 포인트로 짚습니다. 12개 파일 전체를 확인하며 특히 '2026수업자료'처럼 확장자가 없는 파일의 내용을 AI가 직접 읽어보도록 지휘하는 것이 핵심입니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">실습 대상 분석</div>
+        <h2 class="s-title">파일 12개 — 그리고 <span style="color:#c53030">숨어 있는 함정 3개</span></h2>
+        <p class="s-lead">AI 자동 분류 9개 · <strong>인간이 직접 판단해야 하는 예외 함정 3개</strong></p>
+      </div>
+      <div class="s-body s-body--tight s-body--dense">
+        <!-- 상단 함정 3개 요약 카드 -->
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:.55rem;margin-bottom:.55rem">
+          <div style="background:#fff5f5;border:1.5px solid #fecaca;border-radius:8px;padding:.45rem .65rem">
+            <span class="chip" style="background:#c53030;color:#fff;font-size:calc(.65rem * 1.1)">🚨 함정 1 · 확장자
+              없음</span>
+            <div style="font-weight:700;font-size:calc(.76rem * 1.1);color:#9b2c2c;margin-top:.2rem">2026수업자료</div>
+            <div class="mini" style="color:var(--body)">확장자 불명 ➔ <b>내용 읽고 판단</b>하도록 지휘 필수!</div>
+          </div>
+          <div style="background:#fff5f5;border:1.5px solid #fecaca;border-radius:8px;padding:.45rem .65rem">
+            <span class="chip" style="background:#c53030;color:#fff;font-size:calc(.65rem * 1.1)">⚠️ 함정 2 · 이름 모호</span>
+            <div style="font-weight:700;font-size:calc(.76rem * 1.1);color:#9b2c2c;margin-top:.2rem">새파일(1).docx</div>
+            <div class="mini" style="color:var(--body)">이름만으로 용도 불명 ➔ <b>내용 확인 또는 99_보류</b></div>
+          </div>
+          <div style="background:#fff5f5;border:1.5px solid #fecaca;border-radius:8px;padding:.45rem .65rem">
+            <span class="chip" style="background:#c53030;color:#fff;font-size:calc(.65rem * 1.1)">💡 함정 3 ·
+              확장자/버전</span>
+            <div style="font-weight:700;font-size:calc(.76rem * 1.1);color:#9b2c2c;margin-top:.2rem">견적서.csv &amp; 최종본
+            </div>
+            <div class="mini" style="color:var(--body)"><b>.csv는 03_표</b> 분류! / 4일차 <b>Git 버전관리 복선</b></div>
+          </div>
+        </div>
+
+        <!-- 12개 파일 전체 대조 2열 분할 테이블 -->
+        <div class="grid2" style="gap:.55rem">
+          <div class="tbl-wrap">
+            <table class="tbl tbl--dense tbl--files" style="table-layout:fixed;width:100%;font-size:calc(.68rem * 1.1)">
+              <thead>
+                <tr>
+                  <th style="width:10%">No</th>
+                  <th style="width:52%">파일명</th>
+                  <th style="width:38%">정상 목적지</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:#fff5f5">
+                  <td><span class="chip chip--coral">1</span></td>
+                  <td><b>2026수업자료</b></td>
+                  <td><span style="color:#c53030;font-weight:700">01_문서 (함정 1)</span></td>
+                </tr>
+                <tr style="background:#fffaf9">
+                  <td><span class="chip chip--coral">2</span></td>
+                  <td><b>새파일(1).docx</b></td>
+                  <td><span style="color:#c53030;font-weight:700">99_보류 (함정 2)</span></td>
+                </tr>
+                <tr style="background:#fff5f5">
+                  <td><span class="chip chip--coral">3</span></td>
+                  <td><b>견적서.csv</b></td>
+                  <td><b>03_표</b> <span style="color:#c53030;font-weight:700">(함정 3)</span></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>강의계획서_초안.docx</td>
+                  <td>01_문서</td>
+                </tr>
+                <tr style="background:#fffaf9">
+                  <td><span class="chip chip--coral">5</span></td>
+                  <td><b>강의계획서_최종_...</b></td>
+                  <td>01_문서 <span style="color:#c53030">(Git 복선)</span></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>강의안내문.pdf</td>
+                  <td>04_PDF</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl tbl--dense tbl--files" style="table-layout:fixed;width:100%;font-size:calc(.68rem * 1.1)">
+              <thead>
+                <tr>
+                  <th style="width:10%">No</th>
+                  <th style="width:52%">파일명</th>
+                  <th style="width:38%">정상 목적지</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>7</td>
+                  <td>수강생명단_v1.xlsx</td>
+                  <td>03_표</td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>발표자료_표지.png</td>
+                  <td>02_이미지</td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td>IMG_20260312.jpg</td>
+                  <td>02_이미지</td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td>수업메모.txt</td>
+                  <td>01_문서</td>
+                </tr>
+                <tr>
+                  <td>11</td>
+                  <td>수업자료_전체.zip</td>
+                  <td>05_압축 (압축 유지)</td>
+                </tr>
+                <tr style="background:#fffaf9">
+                  <td>12</td>
+                  <td>자격증사본_스캔본.pdf</td>
+                  <td>99_보류 (증빙확인)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Slide 24: Step 1 · 폴더 준비 & 지정 -->
+    <section class="slide"
+      data-notes="이 장 4분. 수강생이 가장 많이 실수하는 구간입니다. 1) zip 파일이면 반드시 압축을 풀어야 하고, 2) 폴더를 복사할 때 '바로가기'가 아닌 진짜 복사본을 만들어야 하며, 3) Codex에서 내문서 전체를 선택하지 말고 반드시 복사한 해당 폴더만 선택해야 합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">Step 1 · 폴더 준비 &amp; 지정</div>
+        <h2 class="s-title">작업 폴더 지정하기 (<span class="hl">프로젝트 폴더 선택</span>)</h2>
+        <p class="s-lead">수강생 실수 3대 방지책 — <strong>반드시 압축 풀고, 복사본 폴더만 정확히 선택</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid3" style="gap:1rem">
+          <div class="card" style="border-left:4px solid #c53030;padding:1.1rem 1.25rem;background:#fff5f5">
+            <span class="chip" style="background:#c53030;color:#fff;font-weight:700">주의 1 · 압축 해제 필수</span>
+            <div class="card-t" style="color:#9b2c2c;font-size:.95rem;margin-top:.4rem;margin-bottom:.35rem">.zip 안에서 작업
+              금지!</div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              압축 폴더 안에서는 AI가 파일을 수정할 수 없습니다. <b>반드시 마우스 우클릭 ➔ '압축 풀기'</b>를 먼저 완료하세요.
+            </div>
+          </div>
+
+          <div class="card" style="border-left:4px solid #64748b;padding:1.1rem 1.25rem;background:#f8fafc">
+            <span class="chip chip--gray" style="font-weight:700">주의 2 · 복사본 만들기</span>
+            <div class="card-t" style="color:var(--ink);font-size:.95rem;margin-top:.4rem;margin-bottom:.35rem">'바로가기'
+              만들면 안 됨!</div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              원본을 안전하게 보존하기 위해 Ctrl+C, Ctrl+V로 <b>진짜 독립 복사본 폴더(day01-folder-practice-내이름)</b>를 생성하세요.
+            </div>
+          </div>
+
+          <div class="card" style="border-left:4px solid var(--blue);padding:1.1rem 1.25rem;background:#f8fbff">
+            <span class="chip" style="background:var(--blue);color:#fff;font-weight:700">주의 3 · 폴더 정확히 선택</span>
+            <div class="card-t" style="color:var(--blue-strong);font-size:.95rem;margin-top:.4rem;margin-bottom:.35rem">
+              복사본 폴더만 선택 또는 드래그</div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              Codex의 [📁 폴더 선택]으로 해당 폴더를 지정하거나, <b>탐색기에서 복사본 폴더를 Codex 창으로 직접 드래그 앤 드롭</b>하세요.
+            </div>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:.85rem;padding:.75rem 1rem">
+          <span class="note-ic">🔑</span>
+          <div style="font-size:.83rem;line-height:1.5"><b>폴더 지정의 대원칙:</b><br>
+            AI에게 내 컴퓨터 전체를 열어주지 않고, <b>"오직 이 실습 폴더 안에서만 일하라"고 안전 울타리(Sandbox)를 쳐주는 작업</b>입니다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 25: Step 2 · 지휘 프롬프트 -->
+    <section class="slide"
+      data-notes="이 장 5분(입력 포함). 프롬프트를 그대로 따라 치게 합니다. 노란 강조 두 줄이 이 프롬프트의 핵심 — 안전 장치와 지능 유도. '왜 이 두 줄이 중요한지'를 아래 카드로 명쾌하게 설명합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">Step 2 · 지휘 프롬프트</div>
+        <h2 class="s-title">1단계 프롬프트 보내기 <span class="chip"
+            style="font-size:.55em;vertical-align:middle;background:var(--blue);color:#fff">Ask Mode</span></h2>
+        <p class="s-lead">아래 문장을 그대로 컴포저에 입력 — <strong>아직 파일 변경 없이 계획표만 요청</strong></p>
+      </div>
+      <div class="s-body">
+        <!-- 실전 프롬프트 전용 다크 콘솔 창 (일반 이론 카드와 100% 차별화) -->
+        <div data-copy="현재 폴더의 파일 12개를 다음 규칙에 따라 6개 폴더(01_문서, 02_이미지, 03_표, 04_PDF, 05_압축, 99_보류)로 분류하려고 해.
+① 아직 파일을 직접 이동하지 말고, 어떤 파일을 어디로 옮길지 '계획표(표 형식)'로 먼저 보여줘.
+② 견적서.csv는 문서가 아니라 03_표 폴더로 제안해줘.
+③ 확장자가 없거나(2026수업자료), 이름이 모호한 파일(새파일(1).docx)은 직접 내용을 읽어보고 판단하거나 99_보류 폴더로 제안해줘." class="prompt prompt--console"
+          style="margin-bottom:.75rem">
+          <!-- 콘솔 상단 윈도우 바 -->
+          <div
+            style="background:#1e293b;padding:.45rem .9rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155">
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <div style="display:flex;gap:.35rem">
+                <span style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block"></span>
+                <span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block"></span>
+                <span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block"></span>
+              </div>
+              <span
+                style="color:#94a3b8;font-size:.74rem;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:0.04em">CODEX
+                COMPOSER PROMPT</span>
+              <span
+                style="background:#0284c7;color:#fff;font-size:.66rem;font-weight:700;padding:.1rem .4rem;border-radius:4px">⌨️
+                실습 입력창 복사용</span>
+            </div>
+            <!-- 우측 안내 및 Ctrl+Enter -->
+            <div style="margin-right:4.6rem;color:#94a3b8;font-size:.72rem">
+              전송: <kbd
+                style="background:#334155;color:#fff;padding:.12rem .35rem;border-radius:3px;border:1px solid #475569">Ctrl</kbd>
+              + <kbd
+                style="background:#334155;color:#fff;padding:.12rem .35rem;border-radius:3px;border:1px solid #475569">Enter</kbd>
+            </div>
+          </div>
+          <!-- 프롬프트 본문 텍스트 -->
+          <div
+            style="padding:.85rem 1.2rem;font-size:.86rem;line-height:1.55;color:#f8fafc;font-weight:500;font-family:var(--f)">
+            “현재 폴더의 파일 12개를 다음 규칙에 따라 6개 폴더(01_문서, 02_이미지, 03_표, 04_PDF, 05_압축, 99_보류)로 분류하려고 해.<br>
+            <div
+              style="background:rgba(56,189,248,.15);border-left:3.5px solid #38bdf8;padding:.25rem .6rem;margin-top:.35rem;border-radius:0 4px 4px 0;color:#e0f2fe">
+              ① 아직 파일을 직접 이동하지 말고, <b>어떤 파일을 어디로 옮길지 '계획표(표 형식)'로 먼저 보여줘.</b>
+            </div>
+            <div
+              style="background:rgba(56,189,248,.15);border-left:3.5px solid #38bdf8;padding:.25rem .6rem;margin-top:.25rem;border-radius:0 4px 4px 0;color:#e0f2fe">
+              ② 확장자가 없거나(2026수업자료), 이름이 모호한 파일은 <b>직접 내용을 열어보고 판단하거나 99_보류로 제안해줘.</b>
+            </div>”
+          </div>
+        </div>
+
+        <div class="grid2" style="gap:1rem">
+          <div class="card" style="padding:1rem 1.2rem;background:#f8fbff;border-left:4px solid var(--blue)">
+            <div class="card-t" style="font-size:.92rem;color:var(--blue-strong);margin-top:.2rem">💡 왜 '표로 먼저 보여달라'고
+              하는가?</div>
+            <div style="font-size:.82rem;color:var(--body);line-height:1.55;margin-top:.3rem">
+              AI가 멋대로 파일을 옮겨버리기 전에 <b>인간이 눈으로 확인하고 틀린 부분을 교정할 안전 기회</b>를 확보하기 위함입니다.
+            </div>
+          </div>
+          <div class="card" style="padding:1rem 1.2rem;background:#f8fbff;border-left:4px solid var(--blue)">
+            <div class="card-t" style="font-size:.92rem;color:var(--blue-strong);margin-top:.2rem">💡 왜 '99_보류' 폴더를 제안하게
+              하는가?</div>
+            <div style="font-size:.82rem;color:var(--body);line-height:1.55;margin-top:.3rem">
+              확신이 없는 파일을 엉뚱한 폴더에 쑤셔 넣지 않고 <b>인간에게 판단을 위임하도록 안전망</b>을 치는 고급 지휘 기술입니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 26: Step 3 · 인간의 30초 검증 -->
+    <section class="slide"
+      data-notes="이 장 8분. AI가 낸 표를 그대로 승인하지 말고 확인합니다. 견적서.csv가 문서로 제안되면 03_표로 수정하게 하고, 확장자 없는 2026수업자료는 내용을 확인하여 분류하도록 지휘합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">Step 3 · 인간의 30초 검증</div>
+        <h2 class="s-title">AI 계획표 <span class="hl">검증과 수정</span></h2>
+        <p class="s-lead"><strong>인간이 실제로 일하는 유일한 지점</strong> — AI 제안을 내 기준으로 검토하고 교정</p>
+      </div>
+      <div class="s-body">
+        <div class="grid2" style="gap:1rem">
+          <!-- 좌측: AI의 계획표 확인 -->
+          <div class="card" style="padding:1.1rem 1.25rem">
+            <div class="chip chip--gray" style="align-self:flex-start">검증 관문</div>
+            <div class="card-t" style="font-size:.95rem;margin-top:.4rem;margin-bottom:.4rem">📋 AI 출력 계획표에서 확인할 3가지
+            </div>
+            <ul class="ul" style="font-size:.82rem;line-height:1.55">
+              <li>총 12개 파일이 빠짐없이 목록에 들어있는가?</li>
+              <li><b>견적서.csv</b>가 문서(01)가 아닌 <b>03_표</b>로 잘 들어갔는가?</li>
+              <li>확장자 없는 <b>2026수업자료</b>와 <b>새파일(1).docx</b>의 내용을 읽고 판단(또는 99_보류 제안)했는가?</li>
+            </ul>
+          </div>
+
+          <!-- 우측: 수정 지시 발화 -->
+          <div class="card" style="border-left:4px solid var(--blue);padding:1.1rem 1.25rem;background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff;font-weight:700">교정 공식
+            </div>
+            <div class="card-t" style="font-size:.95rem;color:var(--blue-strong);margin-top:.4rem;margin-bottom:.4rem">
+              💬 만약 계획표가 틀렸다면?</div>
+            <div
+              style="background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:.7rem .9rem;font-size:.83rem;line-height:1.55;color:var(--ink)">
+              “계획표에서 <b>견적서.csv는 01_문서가 아니라 03_표로 수정</b>해주고, 확장자가 없던 <b>2026수업자료는 내용을 확인해서 01_문서로 분류</b>해줘. 수정된 계획표를 다시
+              보여줘.”
+            </div>
+            <div class="mini" style="color:var(--blue-strong);font-weight:700;margin-top:.5rem">
+              ✓ 이상이 없으면 바로 다음 단계(실행 승인)로 진행합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 27: Step 4~5 · 승인, 실행, 검증 -->
+    <section class="slide"
+      data-notes="이 장 7분. 승인 후 파일이 실제로 이동하는 단계입니다. 반드시 탐색기를 열어 눈으로 확인시킵니다. 만약 AI가 프롬프트를 무시하고 파일을 먼저 옮겨버린 돌발 상황이 발생했을 때의 대처법도 함께 안내합니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">Step 4~5 · 승인, 실행, 검증</div>
+        <h2 class="s-title">실행 승인, 그리고 <span style="color:var(--blue)">내 눈으로 직접 검증</span></h2>
+        <p class="s-lead">계획표 확정 후 [Approve] 승인 — <strong>AI의 완료 메시지보다 내 탐색기 확인이 진짜 완료</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid2" style="gap:1rem">
+          <!-- 좌측: 실행 승인 -->
+          <div class="card" style="padding:1.1rem 1.25rem;border-left:4px solid var(--blue);background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff;font-weight:700">STEP 4 ·
+              실행 승인</div>
+            <div class="card-t" style="font-size:.95rem;color:var(--blue-strong);margin-top:.4rem;margin-bottom:.35rem">
+              “계획표대로 파일 이동을 진행해줘”</div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              명령 전송 후 화면 중앙에 뜨는 <b>[Approve / 승인] 버튼 클릭!</b><br>
+              Codex가 자동으로 6개 폴더를 생성하고 12개 파일을 분류합니다.
+            </div>
+          </div>
+
+          <!-- 우측: 내 눈 검증 -->
+          <div class="card" style="padding:1.1rem 1.25rem;border-left:4px solid var(--blue);background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff;font-weight:700">STEP 5 ·
+              탐색기 직접 검증</div>
+            <div class="card-t" style="font-size:.95rem;color:var(--blue-strong);margin-top:.4rem;margin-bottom:.35rem">
+              AI 말 믿지 말고 폴더 직접 열기</div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              단축키 <b>Win + E</b>로 내 실습 폴더를 열고,<br>
+              6개 폴더에 12개 파일이 정확히 이동했는지 <b>내 두 눈으로 최종 확인</b>합니다.
+            </div>
+          </div>
+        </div>
+
+        <!-- 돌발 상황 비상 복구 카드 -->
+        <div class="card card--tint"
+          style="margin-top:.85rem;padding:.8rem 1.1rem;border-left:4px solid #64748b;background:#f8fafc">
+          <div style="font-weight:700;font-size:.88rem;color:var(--ink)">🚨 혹시 AI가 내 승인도 없이 파일을 먼저 옮겼다면?</div>
+          <div style="font-size:.82rem;color:var(--body);line-height:1.5;margin-top:.25rem">
+            당황하지 말고 입력창에 <b>“방금 이동한 파일들을 모두 원래 위치로 되돌려줘”</b>라고 요청하거나, <b>아까 복사해둔 원본 예비 폴더</b>를 다시 열면 10초 만에 완벽 복구됩니다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 28: 웜업 리뷰 · 5단계 루프 -->
+    <section class="slide"
+      data-notes="이 장 5분. 점심 직전 정리 장. '방금 무슨 일이 일어났나요?'로 물어보고 답을 받은 뒤 이 도식으로 정리합니다. 오후와 내일도 똑같은 루프를 쓴다는 점이 핵심입니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">웜업 리뷰</div>
+        <h2 class="s-title">방금 배운 것 — <span class="hl">5단계 루프</span> 하나</h2>
+        <p class="s-lead">마우스 폴더 생성 없음 · 파일 드래그 없음 — <strong>말로 지휘, Codex가 내 디스크에서 안전 실행</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="flow" style="gap:.6rem;align-items:center">
+          <div class="flow-node" style="padding:1rem .85rem">
+            <div class="flow-step">1</div>
+            <div class="flow-t" style="font-size:.92rem;font-weight:700;margin-top:.3rem">폴더 경계 지정</div>
+            <div class="flow-p" style="font-size:.78rem;color:var(--faint);margin-top:.2rem">복사본 폴더 선택</div>
+          </div>
+          <div class="flow-arrow" style="font-size:1.1rem;color:var(--faint)">→</div>
+          <div class="flow-node" style="padding:1rem .85rem">
+            <div class="flow-step">2</div>
+            <div class="flow-t" style="font-size:.92rem;font-weight:700;margin-top:.3rem">Ask 계획 요청</div>
+            <div class="flow-p" style="font-size:.78rem;color:var(--faint);margin-top:.2rem">“표로 먼저 보여줘”</div>
+          </div>
+          <div class="flow-arrow" style="font-size:1.1rem;color:var(--faint)">→</div>
+          <div class="flow-node ok" style="padding:1rem .85rem;background:#f8fbff;border:2px solid var(--blue)">
+            <div class="flow-step ok">3</div>
+            <div class="flow-t" style="font-size:.92rem;font-weight:700;color:var(--blue-strong);margin-top:.3rem">인간의 눈
+              검증</div>
+            <div class="flow-p" style="font-size:.78rem;color:var(--blue);margin-top:.2rem">함정 3개 대조 교정</div>
+          </div>
+          <div class="flow-arrow" style="font-size:1.1rem;color:var(--faint)">→</div>
+          <div class="flow-node" style="padding:1rem .85rem">
+            <div class="flow-step">4</div>
+            <div class="flow-t" style="font-size:.92rem;font-weight:700;margin-top:.3rem">[Approve] 승인</div>
+            <div class="flow-p" style="font-size:.78rem;color:var(--faint);margin-top:.2rem">안전 버튼 클릭</div>
+          </div>
+          <div class="flow-arrow" style="font-size:1.1rem;color:var(--faint)">→</div>
+          <div class="flow-node" style="padding:1rem .85rem;border-top-color:var(--ink)">
+            <div class="flow-step">5</div>
+            <div class="flow-t" style="font-size:.92rem;font-weight:700;margin-top:.3rem">탐색기 대조</div>
+            <div class="flow-p" style="font-size:.78rem;color:var(--faint);margin-top:.2rem">내 눈으로 최종 완료</div>
+          </div>
+        </div>
+
+        <div class="note note--key" style="margin-top:1.1rem;padding:.75rem 1rem">
+          <span class="note-ic">💡</span>
+          <div style="font-size:.83rem;line-height:1.5">코딩을 몰라도 <b>[경계 지정 ➔ Ask 계획 ➔ 눈 검증 ➔ Approve 승인 ➔ 탐색기 확인]</b> 5단계
+            공식만 지키면 내 컴퓨터 파일은 100% 안전합니다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 29: 작업 기록 · 정리기록.md -->
+    <section class="slide"
+      data-notes="이 장 4분. 정리기록.md는 학생이 손으로 타이핑하지 않습니다. 오늘 대화 전체를 근거로 AI에게 파일 생성을 지휘하는 프롬프트를 그대로 입력하게 합니다. 단순 자동화로 끝내지 않고, 내가 내린 판단 기준을 파일로 남기는 습관을 훈련합니다. 이 기록이 쌓여 나만의 프롬프트 자산이 됩니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">작업 기록</div>
+        <h2 class="s-title"><span class="hl">정리기록.md</span>에 오늘의 판단 남기기</h2>
+        <p class="s-lead">직접 타이핑하지 않고 — <strong>오늘 나눈 대화 전체를 근거로 AI에게 정리기록.md 작성을 지휘</strong></p>
+      </div>
+      <div class="s-body s-body--tight">
+        <!-- 실전 프롬프트 전용 다크 콘솔 창 -->
+        <div data-copy="오늘 나와 나눈 대화 전체를 참고해서, 지금 이 프로젝트 폴더에 정리기록.md 파일을 새로 만들어줘. 아래 4개 항목을 소제목으로 써서 정리해줘.
+
+[진행 과정] 오늘 폴더 정리 실습에서 내가 지시한 순서(계획표 요청 → 검증 → 승인 → 확인)를 실제 대화 흐름 그대로 요약해줘.
+
+[결과 및 주요 판단] 12개 파일이 어떤 6개 폴더로 분류됐는지, 특히 견적서.csv나 2026수업자료처럼 내가 직접 판단해서 수정 지시했던 부분을 구체적으로 적어줘.
+
+[배운 점/인사이트] 오늘 처음 써본 Ask 모드, Approve 승인, 계획표 검증 중에서 내가 실제로 겪은 시행착오나 인상 깊었던 부분을 대화 맥락에서 뽑아 정리해줘.
+
+[다음 실습에 적용할 나만의 원칙] 내일 웹사이트 만들기 실습에도 그대로 써먹을 수 있는, 오늘 얻은 나만의 규칙을 한 문장으로 제안해줘.
+
+표나 코드블록 없이 마크다운 문서로 작성하고, 다 쓰면 파일로 저장까지 완료해줘." class="prompt prompt--console"
+          style="margin-bottom:.6rem">
+          <!-- 콘솔 상단 윈도우 바 -->
+          <div
+            style="background:#1e293b;padding:.45rem .9rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155">
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <div style="display:flex;gap:.35rem">
+                <span style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block"></span>
+                <span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block"></span>
+                <span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block"></span>
+              </div>
+              <span
+                style="color:#94a3b8;font-size:.74rem;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:0.04em">CODEX
+                COMPOSER PROMPT</span>
+              <span
+                style="background:#0284c7;color:#fff;font-size:.66rem;font-weight:700;padding:.1rem .4rem;border-radius:4px">⌨️
+                실습 입력창 복사용</span>
+            </div>
+            <!-- 우측 안내 및 Ctrl+Enter -->
+            <div style="margin-right:4.6rem;color:#94a3b8;font-size:.72rem">
+              전송: <kbd
+                style="background:#334155;color:#fff;padding:.12rem .35rem;border-radius:3px;border:1px solid #475569">Ctrl</kbd>
+              + <kbd
+                style="background:#334155;color:#fff;padding:.12rem .35rem;border-radius:3px;border:1px solid #475569">Enter</kbd>
+            </div>
+          </div>
+          <!-- 프롬프트 본문 텍스트 -->
+          <div
+            style="padding:.7rem 1.2rem;font-size:.83rem;line-height:1.5;color:#f8fafc;font-weight:500;font-family:var(--f)">
+            “<b>오늘 나와 나눈 대화 전체를 참고해서</b>, 지금 이 프로젝트 폴더에 정리기록.md 파일을 새로 만들어줘.<br>
+            <div
+              style="background:rgba(56,189,248,.15);border-left:3.5px solid #38bdf8;padding:.25rem .6rem;margin-top:.35rem;border-radius:0 4px 4px 0;color:#e0f2fe">
+              아래 <b>[진행 과정] [결과 및 주요 판단] [배운 점/인사이트] [다음 실습에 적용할 나만의 원칙]</b> 4개 소제목으로 나눠서, 견적서.csv 재분류처럼 오늘 실제 있었던 판단을 근거로 정리해줘.
+            </div>
+            <div
+              style="background:rgba(56,189,248,.15);border-left:3.5px solid #38bdf8;padding:.25rem .6rem;margin-top:.25rem;border-radius:0 4px 4px 0;color:#e0f2fe">
+              표나 코드블록 없이 마크다운 문서로 작성하고, <b>다 쓰면 파일로 저장까지 완료해줘.</b>
+            </div>”
+          </div>
+        </div>
+
+        <div class="grid2" style="gap:1rem">
+          <!-- 좌측: 프롬프트 설계 포인트 -->
+          <div class="card" style="padding:1rem 1.2rem;background:#f8fbff;border-left:4px solid var(--blue)">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff;font-weight:700">프롬프트 설계
+              포인트</div>
+            <div class="card-t" style="font-size:.92rem;color:var(--blue-strong);margin-top:.35rem;margin-bottom:.3rem">
+              왜 "대화 전체를 참고해서"라고 못박는가?</div>
+            <div style="font-size:.8rem;color:var(--body);line-height:1.5">
+              이 트리거가 없으면 AI가 오늘 있지도 않은 내용으로 <b>그럴듯한 TIL을 지어낼 수 있음</b> — 반드시 오늘 대화 근거를 명시.
+            </div>
+          </div>
+
+          <!-- 우측: 왜 기록이 중요한가 -->
+          <div class="card" style="border-left:4px solid var(--blue);padding:1rem 1.2rem;background:#f8fbff">
+            <div class="chip" style="align-self:flex-start;background:var(--blue);color:#fff;font-weight:700">1인 빌더의 핵심
+              자산</div>
+            <div class="card-t" style="font-size:.92rem;color:var(--blue-strong);margin-top:.35rem;margin-bottom:.3rem">
+              기록은 다음 날의 프롬프트가 됩니다</div>
+            <ul class="ul ul--ok" style="font-size:.8rem;line-height:1.5">
+              <li>실제로 통했던 <b>나만의 프롬프트 레시피</b> 축적</li>
+              <li>내일 2일차 웹 제작 시 동일한 지휘 패턴 재활용</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 30: 1일차 셀프 체크 -->
+    <section class="slide"
+      data-notes="이 장 3분. 오늘 수업의 핵심 개념 3가지를 수강생 스스로 소리 내어 답해보게 합니다. 이 세 문장에 답할 수 있다면 1일차 온보딩은 100% 성공입니다.">
+      <div class="s-head">
+        <div class="s-eyebrow">1일차 셀프 체크</div>
+        <h2 class="s-title">세 문장에 답하면 <span class="hl">오늘 완료</span></h2>
+        <p class="s-lead">오늘 하루 배운 것 — <strong>3가지 질문에 즉시 답할 수 있다면 1일차 온보딩 완벽 성공</strong></p>
+      </div>
+      <div class="s-body">
+        <div class="grid3" style="gap:1rem">
+          <div class="card" style="padding:1.1rem 1.25rem;border-left:4px solid var(--blue)">
+            <div class="chip" style="background:var(--blue);color:#fff;font-weight:700">Q1. 도구 구분</div>
+            <div class="card-t" style="font-size:.95rem;margin-top:.4rem;margin-bottom:.35rem">Chat · Work · Codex의 차이는?
+            </div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              <b>A:</b> Chat은 말로 알려주고, Work는 외부 앱을 처리하고, <b>Codex는 내 컴퓨터에서 실제 프로그램을 만듭니다.</b>
+            </div>
+          </div>
+
+          <div class="card" style="padding:1.1rem 1.25rem;border-left:4px solid var(--blue)">
+            <div class="chip" style="background:var(--blue);color:#fff;font-weight:700">Q2. 안전 원칙</div>
+            <div class="card-t" style="font-size:.95rem;color:var(--blue-strong);margin-top:.4rem;margin-bottom:.35rem">
+              안전 제0원칙이란?</div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              <b>A:</b> AI가 파일을 바꿀 때는 반드시 <b>내가 [Approve / 승인] 버튼을 누른 뒤에만 실행</b>되도록 통제하는 것입니다.
+            </div>
+          </div>
+
+          <div class="card" style="padding:1.1rem 1.25rem;border-left:4px solid #1e293b">
+            <div class="chip" style="background:#1e293b;color:#fff;font-weight:700">Q3. 소통 공식</div>
+            <div class="card-t" style="font-size:.95rem;color:var(--ink);margin-top:.4rem;margin-bottom:.35rem">결과가 틀렸을
+              때 지휘관의 말은?</div>
+            <div style="font-size:.83rem;color:var(--body);line-height:1.55">
+              <b>A:</b> "다시 해줘"가 아니라, <b>"무엇이 왜 틀렸고 어디로 바꿀지(지휘관 3조각)"</b>를 구체적으로 짚어줍니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 31: 피날레 · 1일차 완주 & 2일차 예고 -->
+    <section class="slide title-slide" style="justify-content:center;padding:3.5rem 5rem"
+      data-notes="이 장 2분. 1일차 수업을 마무리하며 수강생들의 완주를 축하하고 2일차의 웹 개발 세계로의 확장을 예고합니다. 오늘 배운 안전 제0원칙과 5단계 지휘 루프가 내일 나만의 첫 웹사이트를 만드는 가장 든든한 밑거름이 됨을 강조하며 힘차게 수업을 마칩니다.">
+      <div class="s-head" style="margin-bottom:1.4rem">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem">
+          <span class="chip"
+            style="background:var(--blue);color:#fff;font-weight:700;font-size:.82rem;padding:.25rem .65rem;border-radius:6px">🎉
+            1일차 완주</span>
+          <span style="color:var(--faint);font-size:.92rem;font-weight:600">내일의 예고 · 2일차</span>
+        </div>
+        <h2 class="s-title"
+          style="font-size:2.3rem;font-weight:800;line-height:1.25;letter-spacing:-0.03em;color:var(--ink);margin:0 0 .6rem 0">
+          내일의 도전: <span class="hl">나만의 첫 웹사이트 런칭</span>
+        </h2>
+        <p class="s-lead" style="font-size:.95rem;color:var(--body);line-height:1.5;margin:0">
+          로컬 파일 통제를 마쳤으니 — <strong>내일은 AI와 함께 브라우저에 공개할 1페이지 소개 웹사이트를 직접 만듭니다</strong>
+        </p>
+      </div>
+
+      <div class="s-body">
+        <div class="grid2" style="gap:1.2rem">
+          <!-- 좌측: 1일차 성취 요약 -->
+          <div class="card card--tint" style="padding:1.2rem 1.35rem;background:#f8fafc;border-top:4px solid #64748b">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+              <span class="chip chip--gray" style="font-weight:700">🏁 1일차 완주 확인</span>
+              <span class="mini" style="color:var(--faint);font-weight:700">기초 체력 완성</span>
+            </div>
+            <div class="card-t" style="font-size:.95rem;color:var(--ink);margin-bottom:.4rem">
+              지휘관으로서 갖춘 3대 기본기
+            </div>
+            <ul class="ul ul--ok" style="font-size:.82rem;line-height:1.55">
+              <li><b>AI 도구 멘탈 모델</b>: Chat · Work · Codex 역할 구분</li>
+              <li><b>안전 제0원칙 체득</b>: 마우스 승인(Approve) 기반 통제</li>
+              <li><b>5단계 지휘 루프</b>: Ask ➔ 계획 검증 ➔ 실행으로 12개 파일 분류 완수</li>
+            </ul>
+          </div>
+
+          <!-- 우측: 2일차 예고 -->
+          <div class="card"
+            style="padding:1.2rem 1.35rem;background:#f8fbff;border-top:4px solid var(--blue);box-shadow:0 4px 16px rgba(43,92,230,.08)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+              <span class="chip" style="background:var(--blue);color:#fff;font-weight:700">🚀 내일 2일차 미리보기</span>
+              <span class="mini" style="color:var(--blue-strong);font-weight:700">첫 웹 프로덕트</span>
+            </div>
+            <div class="card-t" style="font-size:.95rem;color:var(--blue-strong);margin-bottom:.4rem">
+              말로 만드는 첫 1페이지 웹사이트
+            </div>
+            <ul class="ul" style="font-size:.82rem;line-height:1.55">
+              <li><b>마이크로 PRD 기획</b>: 만들고 싶은 아이디어를 10분 만에 정의</li>
+              <li><b>HTML · CSS · JS 구조화</b>: 문법 암기 없이 화면을 직접 구축</li>
+              <li><b>라이브 프리뷰</b>: 내 브라우저에서 실제로 열리는 나만의 소개 사이트 완성!</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="note note--key"
+          style="margin-top:1.1rem;background:#eef5ff;border-left:4px solid var(--blue);padding:.85rem 1.1rem">
+          <span class="note-ic">👏</span>
+          <div style="font-size:.84rem;line-height:1.55"><b>1일차 온보딩 대단히 수고 많으셨습니다!</b><br>
+            오늘 익힌 <b>"지휘관의 눈과 검증 루프"</b> 그대로, 내일 브라우저 위에서 첫 결과물을 멋지게 띄워보겠습니다.
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav id="dots"></nav>
+  <div id="counter"></div>
+  <div id="hint">← → 이동 · <b>N</b> 강사노트 · <b>F</b> 전체화면</div>
+  <aside id="notes">
+    <div class="nt">강사 노트</div>
+    <div id="notes-body"></div>
+  </aside>
+
+  <script>
+    (function () {
+      var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+      var total = slides.length;
+      var dots = document.getElementById('dots');
+      var bar = document.getElementById('progress');
+      var counter = document.getElementById('counter');
+      var notes = document.getElementById('notes');
+      var notesBody = document.getElementById('notes-body');
+      var cur = 0;
+
+      slides.forEach(function (s, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', (i + 1) + '번 슬라이드');
+        b.addEventListener('click', function () { show(i); });
+        dots.appendChild(b);
+      });
+      var dotEls = Array.prototype.slice.call(dots.children);
+
+      // 내용이 세로로 넘치는 장은 본문(.s-body)만 축소해 위·아래 여백을 지킨다.
+      // 폭은 1/k 로 넓혀 잡은 뒤 k 로 되돌리므로 좌우 여백은 그대로 유지된다.
+      function fit(s) {
+        var b = s.querySelector('.s-body');
+        if (!b || !b.children.length) return;
+        b.style.width = ''; b.style.transform = ''; b.style.alignSelf = ''; b.style.transformOrigin = '';
+        var k = 1;
+        for (var n = 0; n < 6; n++) {
+          var top = Infinity, bot = -Infinity;
+          Array.prototype.forEach.call(b.children, function (c) {
+            var r = c.getBoundingClientRect();
+            if (r.height) { top = Math.min(top, r.top); bot = Math.max(bot, r.bottom); }
+          });
+          // b.offsetHeight 는 transform 의 영향을 받지 않는 레이아웃 높이
+          var contentH = bot - top;
+          if (contentH <= b.offsetHeight + 2) break;
+          k = Math.max(0.7, k * b.offsetHeight / contentH);
+          b.style.alignSelf = 'center';
+          b.style.width = (100 / k) + '%';
+          b.style.transformOrigin = 'center center';
+          b.style.transform = 'scale(' + k + ')';
+        }
+      }
+
+      function show(i) {
+        i = Math.max(0, Math.min(total - 1, i));
+        slides[cur].classList.remove('active');
+        dotEls[cur].classList.remove('on');
+        cur = i;
+        slides[cur].classList.add('active');
+        dotEls[cur].classList.add('on');
+        bar.style.width = ((cur + 1) / total * 100) + '%';
+        counter.textContent = (cur + 1) + ' / ' + total;
+        notesBody.textContent = slides[cur].getAttribute('data-notes') || '(이 장에는 강사 노트가 없습니다.)';
+        // 어두운 표지 슬라이드에서는 하단 UI 색을 반전
+        document.body.classList.toggle('dark', /slide--(cover|section)/.test(slides[cur].className));
+        fit(slides[cur]);
+        if (history.replaceState) history.replaceState(null, '', '#' + (cur + 1));
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Spacebar'].indexOf(e.key) > -1) { e.preventDefault(); show(cur + 1); }
+        else if (['ArrowLeft', 'ArrowUp', 'PageUp'].indexOf(e.key) > -1) { e.preventDefault(); show(cur - 1); }
+        else if (e.key === 'Home') { e.preventDefault(); show(0); }
+        else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+        else if (e.key === 'n' || e.key === 'N') { notes.classList.toggle('on'); }
+        else if (e.key === 'f' || e.key === 'F') {
+          if (document.fullscreenElement) document.exitFullscreen();
+          else document.documentElement.requestFullscreen();
+        }
+      });
+
+      var x0 = null;
+      document.addEventListener('touchstart', function (e) { x0 = e.changedTouches[0].clientX; }, { passive: true });
+      document.addEventListener('touchend', function (e) {
+        if (x0 === null) return;
+        var dx = e.changedTouches[0].clientX - x0;
+        if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1));
+        x0 = null;
+      }, { passive: true });
+
+      // 실습용 프롬프트 복사 버튼 (data-copy 가 붙은 상자에만)
+      function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        }
+        // file:// 이나 구형 브라우저에서 clipboard API 가 막힌 경우
+        return new Promise(function (resolve, reject) {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+          document.body.appendChild(ta);
+          ta.select();
+          var ok = false;
+          try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+          document.body.removeChild(ta);
+          ok ? resolve() : reject();
+        });
+      }
+
+      document.querySelectorAll('.prompt[data-copy]').forEach(function (box) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy-btn';
+        btn.textContent = '복사';
+        btn.setAttribute('aria-label', box.getAttribute('data-copy') + ' 프롬프트 복사');
+        var timer = null;
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          // 화면용 해설(.cm)과 버튼 자신은 복사 대상에서 뺀다
+          var clone = box.cloneNode(true);
+          Array.prototype.forEach.call(clone.querySelectorAll('.cm, .copy-btn'), function (n) { n.remove(); });
+          var text = clone.textContent.replace(/[ 	]+$/gm, '').trim();
+          function flash(msg, ok) {
+            btn.textContent = msg;
+            btn.classList.toggle('is-done', ok);
+            clearTimeout(timer);
+            timer = setTimeout(function () { btn.textContent = '복사'; btn.classList.remove('is-done'); }, 1500);
+          }
+          copyText(text).then(function () { flash('복사됨 ✓', true); },
+            function () { flash('직접 선택하세요', false); });
+        });
+        box.appendChild(btn);
+      });
+
+      // 창 크기가 바뀌면 rem 이 달라지므로 다시 맞춘다
+      addEventListener('resize', function () { fit(slides[cur]); });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fit(slides[cur]); });
+
+      // 새로고침해도 보던 장으로 복귀 (자습 시 이어보기)
+      var start = parseInt((location.hash || '').replace('#', ''), 10);
+      show(isNaN(start) ? 0 : start - 1);
+    })();
+  </script>
+</body>
+
+</html>
